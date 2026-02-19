@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from pathlib import Path
 import json
@@ -43,7 +43,7 @@ def main() -> None:
     )
 
     N = float(cfg["student"]["N0"])  # baseline uses N=N0 (n=1)
-    sim = run_baseline_grid_simulation(cfg=cfg, tech=tech, N=N)
+    sim, sim_grids, _ = run_baseline_grid_simulation(cfg=cfg, tech=tech, N=N)
 
     out_tables = project_root / "results" / "tables"
     out_figs = project_root / "results" / "figures"
@@ -72,15 +72,15 @@ def main() -> None:
     }
     (out_logs / "exp_01_run_log.json").write_text(json.dumps(log_obj, indent=2), encoding="utf-8")
 
-    plot_scaling_curves(cfg=cfg, tech=tech, N=N, outdir=out_figs)
+    plot_scaling_curves(cfg=cfg, tech=tech, N=N, outdir=out_figs, grids=sim_grids)
     plot_student_profit_slices(
         cfg=cfg, tech=tech, N=N,
         p_values=[0.01, 0.05, 0.2, 1.0],
-        econ=cfg["economics"],
         outdir=out_figs,
+        grids=sim_grids,
     )
-    plot_demand_curve(sim=sim, outdir=out_figs)
-    plot_teacher_profit(sim=sim, outdir=out_figs)
+    plot_demand_curve(sim=sim, outdir=out_figs, cfg=cfg)
+    plot_teacher_profit(sim=sim, outdir=out_figs, cfg=cfg)
 
     print("Done. Outputs written to:")
     print(" -", out_tables)

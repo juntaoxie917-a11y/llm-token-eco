@@ -24,7 +24,7 @@ exponents:
 # Normalization anchors for supervised frontier
 anchors_supervised:
   D0: 1.0
-  D1: 10.0
+  D1: 100.0
   L0: 1.0
   L1: 0.85
   E: 0.0   # baseline uses E=0 (loss measured above irreducible floor)
