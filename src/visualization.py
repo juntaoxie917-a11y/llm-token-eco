@@ -296,9 +296,9 @@ def plot_soft_teacher_profit(*, cfg: Dict[str, Any], df: "pd.DataFrame", outdir:
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
-    ax.plot(p, piT, label=r"Teacher profit $\Pi_T^{soft}(p)$")
+    ax.plot(p, piT, label=r"Teacher payoff $\Pi_T^{soft}(p)$")
     ax.set_xlabel(r"Teacher token price $p$")
-    ax.set_ylabel(r"Teacher profit (normalized units)")
+    ax.set_ylabel(r"Teacher payoff (normalized units)")
     ax.set_title("Teacher pricing under soft participation")
 
     # mark p*
@@ -311,3 +311,90 @@ def plot_soft_teacher_profit(*, cfg: Dict[str, Any], df: "pd.DataFrame", outdir:
     fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
     _save_figure(fig, outdir / "fig_soft_02_teacher_profit", save_png=save_png)
     plt.close(fig)
+
+def plot_soft_student_payoff(
+    *,
+    cfg: Dict[str, Any],
+    df,
+    outdir: Path,
+    stem: str = "fig_soft_03_student_payoff",
+) -> None:
+    """
+    Plot student payoff vs price p under soft outside option.
+
+    Expected payoff summary (your implementation):
+        Pi_S_soft(p) = s(p) * Pi_S^*(p),
+    where Pi_S^*(p) is the student's optimized payoff conditional on entry,
+    and s(p) is the logit entry probability.
+
+    Required df columns:
+      - p
+      - pi_student_star      (Pi_S^*(p))
+      - s_enter              (s(p))
+      - pi_student_soft      (Pi_S_soft(p)=s*Pi_S^*)
+      - pi_teacher_soft      (optional, used to mark p*)
+    """
+    outdir = Path(outdir)
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    required = ["p", "pi_student_star", "s_enter", "pi_student_soft"]
+    missing = [c for c in required if c not in df.columns]
+    if missing:
+        raise KeyError(f"Missing required columns in df: {missing}. "
+                       f"Have columns: {list(df.columns)}")
+
+    p = df["p"].to_numpy(dtype=float)
+    pi_star = df["pi_student_star"].to_numpy(dtype=float)
+    s = df["s_enter"].to_numpy(dtype=float)
+    pi_soft = df["pi_student_soft"].to_numpy(dtype=float)
+
+    # Optional: mark teacher optimum price under soft participation
+    p_star = None
+    if "pi_teacher_soft" in df.columns:
+        piT = df["pi_teacher_soft"].to_numpy(dtype=float)
+        idx_star = int(np.nanargmax(piT))
+        p_star = float(p[idx_star])
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    # Payoff curves
+    ax.plot(p, pi_star, label=r"Conditional payoff $\Pi_S^*(p)$")
+    ax.plot(p, pi_soft, label=r"Expected payoff $s(p)\Pi_S^*(p)$")
+
+    # Outside option baseline
+    ax.axhline(0.0, linestyle="--", linewidth=1.0, label="Outside option (0)")
+
+    # Mark p*
+    if p_star is not None:
+        ax.axvline(p_star, linestyle="--", linewidth=1.0, label=fr"$p^*={p_star:.3g}$")
+
+    ax.set_xlabel(r"Teacher token price $p$")
+    ax.set_ylabel(r"Student payoff (normalized units)")
+    ax.set_title("Student payoff vs teacher price under soft outside option")
+
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.6)
+
+    # Secondary axis for entry probability
+    ax2 = ax.twinx()
+    ax2.plot(p, s, linestyle=":", linewidth=1.5, label=r"Entry prob $s(p)$")
+    ax2.set_ylabel(r"Entry probability $s(p)$")
+    ax2.set_ylim(-0.05, 1.05)
+
+    # Combine legends
+    lines, labels = ax.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax2.legend(lines + lines2, labels + labels2, loc="best")
+
+    # Footer (lightweight, avoids dependence on your helpers)
+    econ = cfg.get("economics", {})
+    soft = cfg.get("soft_outside", {})
+    footer = f"a={econ.get('a')}, b={econ.get('b')}, k={econ.get('k')}, c_T={econ.get('c_T')}, tau={soft.get('tau')}"
+    fig.text(0.01, -0.08, footer, ha="left", va="top", fontsize=8)
+
+    # Save PDF/SVG/PNG
+    fig.savefig(outdir / f"{stem}.pdf", bbox_inches="tight")
+    fig.savefig(outdir / f"{stem}.svg", bbox_inches="tight")
+    fig.savefig(outdir / f"{stem}.png", dpi=200, bbox_inches="tight")
+    plt.close(fig)
+    

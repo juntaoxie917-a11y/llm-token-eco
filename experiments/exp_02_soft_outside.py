@@ -14,6 +14,7 @@ from src.visualization import (
     plot_scaling_curves,
     plot_soft_demand_curve,
     plot_soft_teacher_profit,
+    plot_soft_student_payoff,
 )
 
 # Optional: if you want soft-specific plots, we will add them later
@@ -68,6 +69,7 @@ def main():
     plot_scaling_curves(cfg=cfg, tech=tech, N=N, grids=sim_grids, outdir=out_figs)
     plot_soft_demand_curve(cfg=cfg, df=df, outdir=out_figs)
     plot_soft_teacher_profit(cfg=cfg, df=df, outdir=out_figs)
+    plot_soft_student_payoff(cfg=cfg, df=df, outdir=out_figs)
 
     # IMPORTANT: plot_demand_curve/plot_teacher_profit currently read sim.demand_rows fields:
     # they expect DemandRow with D_star and pi_teacher. Soft rows have different field names.
