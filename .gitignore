@@ -1,6 +1,11 @@
-results/
 __pycache__/
 
 .github/
 
 .DS_Store
+
+*.pdf
+*.png
+*.svg
+*.json
+*.csv
