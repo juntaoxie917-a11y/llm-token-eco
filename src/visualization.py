@@ -139,26 +139,24 @@ def plot_demand_curve(
     outdir: Path,
     save_png: bool = True,
 ) -> None:
-    """
-    Figure 3: demand curve D*(p).
-    """
     p = np.array([r.p for r in sim.demand_rows])
     D = np.array([r.D_star for r in sim.demand_rows])
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
-    ax.plot(p, D, label=r"Student demand $D^*(p)$")
-    ax.set_yscale("log")
+    ax.plot(p, D, label=r"Student demand $D(p)$ (hard outside option)")
+
+    # symlog handles zeros cleanly, while still showing wide ranges
+    ax.set_yscale("symlog", linthresh=1e-6)
 
     ax.set_xlabel(r"Teacher token price $p$")
-    ax.set_ylabel(r"Optimal training tokens $D^*(p)$ (log scale)")
-    ax.set_title("Student demand for teacher tokens")
+    ax.set_ylabel(r"Optimal training tokens $D(p)$ (symlog scale)")
+    ax.set_title("Student demand for teacher tokens (with opt-out)")
 
-    # boundary share annotation (useful diagnostic)
     ax.text(
         0.02, 0.02,
-        f"Boundary solutions share: {sim.boundary_share:.2%}",
+        f"Opt-out share: {sim.optout_share:.2%}\nBoundary share: {sim.boundary_share:.2%}",
         transform=ax.transAxes,
         fontsize=9,
         va="bottom",
@@ -206,3 +204,56 @@ def plot_teacher_profit(
 
     _save_figure(fig, outdir / "fig_04_teacher_profit", save_png=save_png)
     plt.close(fig)
+
+def plot_student_indirect_payoff(
+    *,
+    cfg: Dict[str, Any],
+    sim: SimulationResult,
+    outdir: Path,
+    save_png: bool = True,
+) -> None:
+    """
+    Figure: Student indirect payoff Pi_S^*(p) over the price grid.
+
+    Uses sim.demand_rows[*].pi_student, which should already be the optimized value
+    (and equals 0 under hard outside option if you coded it that way).
+    """
+    p = np.array([r.p for r in sim.demand_rows], dtype=float)
+    piS = np.array([r.pi_student for r in sim.demand_rows], dtype=float)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    ax.plot(p, piS, label=r"Student indirect payoff $\Pi_S^*(p)$")
+    ax.axhline(0.0, linestyle="--", linewidth=1.0, label="Outside option (0)")
+
+    # Mark teacher optimum p* and Pi_S*(p*)
+    p_star = float(sim.p_star)
+    # Find nearest grid index to p_star
+    idx = int(np.argmin(np.abs(p - p_star)))
+    ax.scatter([p[idx]], [piS[idx]], zorder=5)
+    ax.axvline(p_star, linestyle="--", linewidth=1.0, label=fr"$p^*={p_star:.3g}$")
+
+    ax.set_xlabel(r"Teacher token price $p$")
+    ax.set_ylabel(r"Student payoff at optimum $\Pi_S^*(p)$ (normalized units)")
+    ax.set_title("Student participation and payoff across teacher prices")
+
+    # Optional: annotate value at p*
+    ax.text(
+        0.02, 0.98,
+        fr"$\Pi_S^*(p^*)={piS[idx]:.3g}$",
+        transform=ax.transAxes,
+        fontsize=10,
+        va="top",
+        ha="left",
+        bbox=dict(boxstyle="round", facecolor="white", alpha=0.6, linewidth=0.5),
+    )
+
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.6)
+    ax.legend()
+
+    fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
+
+    _save_figure(fig, outdir / "fig_05_student_indirect_payoff", save_png=save_png)
+    plt.close(fig)
+    

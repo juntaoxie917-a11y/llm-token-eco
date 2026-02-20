@@ -1,62 +1,58 @@
-# Baseline configuration for Tier A simulation (sanity-check / illustration)
-# Notes:
-# - We normalize loss levels using supervised anchors at (D0, D1): Ltilde(D0)=L0, Ltilde(D1)=L1.
-# - We normalize the distillation gap using (rho, q): gap(D0)=rho*L0 and gap(D1)=q*gap(D0).
-# - This file is intended to be modified for experiments; code should not hardcode parameters.
-
 experiment:
-  name: exp_01_baseline_tierA
+  name: exp_01_baseline_tierA_hard_outside
   seed: 42
 
-# Student scale (for baseline we can set N0=1 via nondimensionalization)
 student:
+  # Reference scale (dimensionless), keep 1.0 for baseline
   N0: 1.0
 
-# Exponents (structural parameters). Start simple, then vary in robustness checks.
+# Exponents: use empirical magnitudes from Distillation Scaling Laws (Table 6, Appendix F.3)
 exponents:
-  alpha: 0.3
-  beta: 0.3
-  gamma: 1.0
-  alpha_p: 0.3
-  beta_p: 0.3
-  gamma_p: 1.0
+  alpha: 0.41
+  beta: 0.43
+  gamma: 0.45
+  alpha_p: 0.32
+  beta_p: 0.64
+  gamma_p: 0.76
 
-# Normalization anchors for supervised frontier
+# Anchors: interpret D as "billions of tokens" for readability (purely a scale choice)
 anchors_supervised:
-  D0: 1.0
-  D1: 100.0
-  L0: 1.0
+  D0: 20.0
+  D1: 128.0
+  L0: 1.00
   L1: 0.85
-  E: 0.0   # baseline uses E=0 (loss measured above irreducible floor)
+  E: 0.0
 
-# Normalization anchors for distillation gap (Tier A reduced form)
 anchors_gap:
-  rho: 0.2     # gap share at D0: gap(D0)=rho*L0
-  q: 0.5       # decay: gap(D1)=q*gap(D0)
-  A_p: 1.0     # normalization: set A' = 1.0 to reduce degrees of freedom
+  rho: 0.20
+  q: 0.50
+  A_p: 1.0
 
 economics:
-  # Downstream value V(L)=a-bL for baseline; only b affects incentives
-  a: 0.0
+  # IMPORTANT: a must be positive if you later allow opt-out with 0 outside option.
+  # Otherwise the student may never enter.
+  a: 8.0
   b: 1.0
-  # Student-side compute cost per token
-  k: 0.05
-  # Teacher marginal cost per token (inference cost proxy)
-  c_T: 0.02
 
-# Grids and solver bounds for numerical optimization over D and for pricing grid over p
+  # costs per unit of D (here: per "billion tokens")
+  k: 0.5
+  c_T: 1.0
+
 grids:
-  D_min: 1e-6
+  # D bounds for optimization; we will allow D=0 via hard opt-out, but optimizer still uses (D_min, D_max).
+  D_min: 1e-10
   D_max: 1e6
+
+  # D range for scaling-law plots
   D_plot_min: 1e-3
   D_plot_max: 1e3
+
+  # Price search grid
   p_min: 0.0
-  p_max: 2.0
-  p_points: 200
+  p_max: 50.0
+  p_points: 400
 
 solver:
-  # "direct_max" indicates we numerically maximize student profit over D (robust baseline)
   method: direct_max
-  # tolerances for 1D optimization
   xtol: 1e-10
   max_iter: 200
