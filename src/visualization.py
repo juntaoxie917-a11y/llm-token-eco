@@ -20,6 +20,9 @@ import matplotlib.pyplot as plt
 from .scaling_laws import TierATechnology
 from .simulation import SimulationResult, SimulationGrids
 
+import numpy as np
+import pandas as pd
+
 
 def _save_figure(fig: plt.Figure, outpath_base: Path, *, save_png: bool = True, dpi: int = 300) -> None:
     """
@@ -257,3 +260,54 @@ def plot_student_indirect_payoff(
     _save_figure(fig, outdir / "fig_05_student_indirect_payoff", save_png=save_png)
     plt.close(fig)
     
+def plot_soft_demand_curve(*, cfg: Dict[str, Any], df: "pd.DataFrame", outdir: Path, save_png: bool = True) -> None:
+    p = df["p"].to_numpy()
+    Dsoft = df["D_soft"].to_numpy()
+    s = df["s_enter"].to_numpy()
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    ax.plot(p, Dsoft, label=r"Effective demand $D^{soft}(p)=s(p)\cdot D^*(p)$")
+    ax.set_yscale("symlog", linthresh=1e-6)
+    ax.set_xlabel(r"Teacher token price $p$")
+    ax.set_ylabel(r"Effective tokens $D^{soft}(p)$ (symlog)")
+    ax.set_title("Soft participation: effective token demand")
+
+    ax2 = ax.twinx()
+    ax2.plot(p, s, linestyle="--", label=r"Enter prob $s(p)$")
+    ax2.set_ylabel(r"Enter probability $s(p)$")
+
+    # legends
+    lines, labels = ax.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax2.legend(lines + lines2, labels + labels2, loc="best")
+
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.6)
+    fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
+    _save_figure(fig, outdir / "fig_soft_01_demand", save_png=save_png)
+    plt.close(fig)
+
+
+def plot_soft_teacher_profit(*, cfg: Dict[str, Any], df: "pd.DataFrame", outdir: Path, save_png: bool = True) -> None:
+    p = df["p"].to_numpy()
+    piT = df["pi_teacher_soft"].to_numpy()
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    ax.plot(p, piT, label=r"Teacher profit $\Pi_T^{soft}(p)$")
+    ax.set_xlabel(r"Teacher token price $p$")
+    ax.set_ylabel(r"Teacher profit (normalized units)")
+    ax.set_title("Teacher pricing under soft participation")
+
+    # mark p*
+    idx = int(np.argmax(piT))
+    ax.axvline(float(p[idx]), linestyle="--", linewidth=1.0, label=fr"$p^*={p[idx]:.3g}$")
+    ax.scatter([p[idx]], [piT[idx]], zorder=5)
+
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.6)
+    ax.legend()
+    fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
+    _save_figure(fig, outdir / "fig_soft_02_teacher_profit", save_png=save_png)
+    plt.close(fig)
