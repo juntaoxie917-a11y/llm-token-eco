@@ -78,17 +78,16 @@ def plot_scaling_curves(
     ax = fig.add_subplot(111)
 
     ax.plot(D, Ltilde, label=r"Supervised frontier $\tilde{L}_S(N,D)$")
-    ax.plot(D, Lstud, label=r"Distilled loss $L_S(N,D)$ (Tier A)")
+    ax.plot(D, Lstud, label=r"Distilled loss $L_S(N,D)$ (Baseline)")
     ax.plot(D, gap, label=r"Gap $\Delta(D)=L_S-\tilde{L}_S$")
 
     ax.set_xscale("log")
     ax.set_xlabel(r"Training tokens $D$ (log scale)")
     ax.set_ylabel("Cross-entropy loss (normalized units)")
-    ax.set_title("Technology block: supervised frontier vs distilled loss")
-    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.6)
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
 
-    fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
+    # fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
 
     _save_figure(fig, outdir / "fig_01_scaling_curves", save_png=save_png)
     plt.close(fig)
@@ -125,11 +124,10 @@ def plot_student_profit_slices(
     ax.set_xscale("log")
     ax.set_xlabel(r"Training tokens $D$ (log scale)")
     ax.set_ylabel(r"Student payoff $\Pi_S(D)$ (normalized units)")
-    ax.set_title("Student payoff profiles (sanity check for interior optimum)")
-    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.6)
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend(title="Teacher token price")
 
-    fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
+    # fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
 
     _save_figure(fig, outdir / "fig_02_student_profit_slices", save_png=save_png)
     plt.close(fig)
@@ -148,14 +146,13 @@ def plot_demand_curve(
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
-    ax.plot(p, D, label=r"Student demand $D(p)$ (hard outside option)")
+    ax.plot(p, D, label=r"Student demand $D^*(p)$ (hard outside option)")
 
     # symlog handles zeros cleanly, while still showing wide ranges
     ax.set_yscale("symlog", linthresh=1e-6)
 
-    ax.set_xlabel(r"Teacher token price $p$")
-    ax.set_ylabel(r"Optimal training tokens $D(p)$ (symlog scale)")
-    ax.set_title("Student demand for teacher tokens (with opt-out)")
+    ax.set_xlabel(r"Token price $p$")
+    ax.set_ylabel(r"Optimal training tokens $D^*(p)$")
 
     ax.text(
         0.02, 0.02,
@@ -167,10 +164,10 @@ def plot_demand_curve(
         bbox=dict(boxstyle="round", facecolor="white", alpha=0.6, linewidth=0.5),
     )
 
-    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.6)
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
 
-    fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
+    # fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
 
     _save_figure(fig, outdir / "fig_03_demand_curve", save_png=save_png)
     plt.close(fig)
@@ -196,14 +193,13 @@ def plot_teacher_profit(
     ax.axvline(sim.p_star, linestyle="--", linewidth=1.0, label=fr"$p^*={sim.p_star:.3g}$")
     ax.scatter([sim.p_star], [sim.pi_teacher_star], zorder=5)
 
-    ax.set_xlabel(r"Teacher token price $p$")
-    ax.set_ylabel(r"Teacher payoff $\Pi_T(p)$ (normalized units)")
-    ax.set_title("Teacher pricing objective and optimal price")
+    ax.set_xlabel(r"Token price $p$")
+    ax.set_ylabel(r"Teacher payoff $\Pi_T(p)$")
 
-    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.6)
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
 
-    fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
+    # fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
 
     _save_figure(fig, outdir / "fig_04_teacher_profit", save_png=save_png)
     plt.close(fig)
@@ -237,9 +233,8 @@ def plot_student_indirect_payoff(
     ax.scatter([p[idx]], [piS[idx]], zorder=5)
     ax.axvline(p_star, linestyle="--", linewidth=1.0, label=fr"$p^*={p_star:.3g}$")
 
-    ax.set_xlabel(r"Teacher token price $p$")
-    ax.set_ylabel(r"Student payoff at optimum $\Pi_S^*(p)$ (normalized units)")
-    ax.set_title("Student participation and payoff across teacher prices")
+    ax.set_xlabel(r"Token price $p$")
+    ax.set_ylabel(r"Student payoff at optimum $\Pi_S^*(p)$")
 
     # Optional: annotate value at p*
     ax.text(
@@ -252,10 +247,10 @@ def plot_student_indirect_payoff(
         bbox=dict(boxstyle="round", facecolor="white", alpha=0.6, linewidth=0.5),
     )
 
-    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.6)
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
 
-    fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
+    # fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
 
     _save_figure(fig, outdir / "fig_05_student_indirect_payoff", save_png=save_png)
     plt.close(fig)
@@ -268,23 +263,22 @@ def plot_soft_demand_curve(*, cfg: Dict[str, Any], df: "pd.DataFrame", outdir: P
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
-    ax.plot(p, Dsoft, label=r"Effective demand $D^{soft}(p)=s(p)\cdot D^*(p)$")
+    ax.plot(p, Dsoft, label=r"Effective demand $D^{eff}(p)=s(p)\cdot D^*(p)$")
     ax.set_yscale("symlog", linthresh=1e-6)
-    ax.set_xlabel(r"Teacher token price $p$")
-    ax.set_ylabel(r"Effective tokens $D^{soft}(p)$ (symlog)")
-    ax.set_title("Soft participation: effective token demand")
+    ax.set_xlabel(r"Token price $p$")
+    ax.set_ylabel(r"Effective tokens $D^{eff}(p)$")
 
     ax2 = ax.twinx()
-    ax2.plot(p, s, linestyle="--", label=r"Enter prob $s(p)$")
-    ax2.set_ylabel(r"Enter probability $s(p)$")
+    ax2.plot(p, s, linestyle="--", label=r"Entry prob $s(p)$")
+    ax2.set_ylabel(r"Entry probability $s(p)$")
 
     # legends
     lines, labels = ax.get_legend_handles_labels()
     lines2, labels2 = ax2.get_legend_handles_labels()
     ax2.legend(lines + lines2, labels + labels2, loc="best")
 
-    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.6)
-    fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    # fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
     _save_figure(fig, outdir / "fig_soft_01_demand", save_png=save_png)
     plt.close(fig)
 
@@ -296,19 +290,18 @@ def plot_soft_teacher_profit(*, cfg: Dict[str, Any], df: "pd.DataFrame", outdir:
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
-    ax.plot(p, piT, label=r"Teacher payoff $\Pi_T^{soft}(p)$")
-    ax.set_xlabel(r"Teacher token price $p$")
-    ax.set_ylabel(r"Teacher payoff (normalized units)")
-    ax.set_title("Teacher pricing under soft participation")
+    ax.plot(p, piT, label=r"Teacher payoff $\Pi_T^{eff}(p)$")
+    ax.set_xlabel(r"Token price $p$")
+    ax.set_ylabel(r"Teacher payoff")
 
     # mark p*
     idx = int(np.argmax(piT))
     ax.axvline(float(p[idx]), linestyle="--", linewidth=1.0, label=fr"$p^*={p[idx]:.3g}$")
     ax.scatter([p[idx]], [piT[idx]], zorder=5)
 
-    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.6)
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
-    fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
+    # fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
     _save_figure(fig, outdir / "fig_soft_02_teacher_profit", save_png=save_png)
     plt.close(fig)
 
@@ -369,11 +362,10 @@ def plot_soft_student_payoff(
     if p_star is not None:
         ax.axvline(p_star, linestyle="--", linewidth=1.0, label=fr"$p^*={p_star:.3g}$")
 
-    ax.set_xlabel(r"Teacher token price $p$")
-    ax.set_ylabel(r"Student payoff (normalized units)")
-    ax.set_title("Student payoff vs teacher price under soft outside option")
+    ax.set_xlabel(r"Token price $p$")
+    ax.set_ylabel(r"Student payoff")
 
-    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.6)
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
 
     # Secondary axis for entry probability
     ax2 = ax.twinx()
@@ -390,7 +382,7 @@ def plot_soft_student_payoff(
     econ = cfg.get("economics", {})
     soft = cfg.get("soft_outside", {})
     footer = f"a={econ.get('a')}, b={econ.get('b')}, k={econ.get('k')}, c_T={econ.get('c_T')}, tau={soft.get('tau')}"
-    fig.text(0.01, -0.08, footer, ha="left", va="top", fontsize=8)
+    # fig.text(0.01, -0.08, footer, ha="left", va="top", fontsize=8)
 
     # Save PDF/SVG/PNG
     fig.savefig(outdir / f"{stem}.pdf", bbox_inches="tight")
