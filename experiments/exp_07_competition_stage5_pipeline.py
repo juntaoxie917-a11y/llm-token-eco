@@ -9,8 +9,10 @@ from pathlib import Path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from src.competition_downstream_solver import DownstreamSolverParams
+from src.competition_downstream_solver import build_downstream_solver_params_from_config
 from src.competition_simulation import run_competition_grid_simulation, to_dataframe
 from src.competition_static import CompetitionParams
+from src.competition_static import build_competition_params_from_config
 from src.competition_visualization import (
     load_competition_results_csv,
     plot_competition_d_star_vs_p,
@@ -18,40 +20,23 @@ from src.competition_visualization import (
     plot_competition_downstream_shares_vs_p,
     plot_competition_teacher_profit_vs_p,
 )
-from src.config_loader import load_and_validate
+from src.config_loader import load_and_validate, load_yaml
 from src.scaling_laws import build_tierA_from_config
 
 
 def main() -> None:
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    cfg_path = os.path.join(base_dir, "config", "base.yaml")
+    competition_cfg_path = os.path.join(base_dir, "config", "competition.yaml")
+    competition_cfg = load_yaml(competition_cfg_path)
+
+    base_cfg_rel = str(competition_cfg.get("run", {}).get("base_config", "config/base.yaml"))
+    cfg_path = os.path.join(base_dir, base_cfg_rel)
     cfg = load_and_validate(cfg_path)
     tech = build_tierA_from_config(cfg)
     N = float(cfg["student"]["N0"])
 
-    # Stage 5 keeps competition additions parallel and explicit.
-    comp = CompetitionParams(
-        M=1_000_000.0,
-        m_T=2.0,
-        m_S=2.0,
-        u0=0.0,
-        tau=1.0,
-        q_T=-1.0,
-        quality_map="neg_loss",
-        quality_scale=1.0,
-        quality_shift=0.0,
-    )
-    sp = DownstreamSolverParams(
-        P_T_min=0.0,
-        P_T_max=20.0,
-        P_S_min=0.0,
-        P_S_max=20.0,
-        fd_eps=1e-5,
-        root_tol=1e-6,
-        max_nfev=500,
-        br_max_iter=80,
-        br_tol=1e-7,
-    )
+    comp: CompetitionParams = build_competition_params_from_config(competition_cfg)
+    sp: DownstreamSolverParams = build_downstream_solver_params_from_config(competition_cfg)
 
     # For Stage 5 pipeline we run the full configured p-grid by default.
     sim, _sim_grids, _params = run_competition_grid_simulation(
@@ -131,6 +116,7 @@ def main() -> None:
     run_log = {
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "config_path": cfg_path,
+        "competition_config_path": competition_cfg_path,
         "competition_params": comp.__dict__,
         "downstream_solver_params": sp.__dict__,
         "summary": summary,

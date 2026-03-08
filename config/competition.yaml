@@ -1,0 +1,33 @@
+run:
+  # Base model parameters (student, scaling exponents, economics, grids, solver)
+  base_config: config/base.yaml
+
+competition:
+  # Stage-5 downstream market scale and marginal costs
+  M: 1000000.0
+  m_T: 2.0
+  m_S: 2.0
+
+  # Logit outside utility and temperature
+  u0: 0.0
+  tau: 1.0
+
+  # Teacher quality in downstream market
+  q_T: -1.0
+
+  quality_mapping:
+    # q_S = -loss for "neg_loss"
+    mode: neg_loss
+    scale: 1.0
+    shift: 0.0
+
+  downstream_solver:
+    P_T_min: 0.0
+    P_T_max: 20.0
+    P_S_min: 0.0
+    P_S_max: 20.0
+    fd_eps: 1e-5
+    root_tol: 1e-6
+    max_nfev: 500
+    br_max_iter: 80
+    br_tol: 1e-7

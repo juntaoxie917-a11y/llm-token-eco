@@ -35,6 +35,7 @@ Configs:
 
 - `config/base.yaml`
 - `config/soft.yaml`
+- `config/competition.yaml`
 
 Reference docs:
 
