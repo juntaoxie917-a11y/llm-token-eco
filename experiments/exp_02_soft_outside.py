@@ -7,7 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import json
 from pathlib import Path
 
-from src.config_loader import load_and_validate
+from src.config_loader import load_with_base_config
 from src.scaling_laws import build_tierA_from_config
 from src.simulation_soft import run_soft_grid_simulation, to_dataframe as soft_to_df
 from src.visualization import (
@@ -23,7 +23,7 @@ from src.visualization import (
 def main():
     base_dir = Path(__file__).resolve().parents[1]
     cfg_path = base_dir / "config" / "soft.yaml"
-    cfg = load_and_validate(cfg_path)
+    cfg = load_with_base_config(cfg_path, project_root=base_dir)
 
     out_tables = base_dir / "results" / "tables"
     out_figs = base_dir / "results" / "figures"

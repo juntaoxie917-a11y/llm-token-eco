@@ -6,7 +6,7 @@ Loads YAML configuration and performs minimal validation to catch common mistake
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 try:
     import yaml  # PyYAML
@@ -93,3 +93,52 @@ def load_and_validate(path: str | Path) -> Dict[str, Any]:
     cfg = load_yaml(path)
     validate_base_config(cfg)
     return cfg
+
+
+def _deep_merge_dicts(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+    """Recursively merge two dicts without mutating inputs.
+
+    Keys in override replace base values; nested dicts are merged recursively.
+    """
+    out: Dict[str, Any] = dict(base)
+    for k, v in override.items():
+        bv = out.get(k)
+        if isinstance(bv, dict) and isinstance(v, dict):
+            out[k] = _deep_merge_dicts(bv, v)
+        else:
+            out[k] = v
+    return out
+
+
+def load_with_base_config(path: str | Path, *, project_root: Optional[str | Path] = None) -> Dict[str, Any]:
+    """Load config that may declare `run.base_config`, then validate merged result.
+
+    Resolution rules for relative base path:
+    1) `project_root / base_config` if project_root is provided;
+    2) `config_file_dir / base_config` otherwise.
+    """
+    cfg_path = Path(path)
+    cfg_raw = load_yaml(cfg_path)
+
+    run_cfg = cfg_raw.get("run", {})
+    base_ref = run_cfg.get("base_config") if isinstance(run_cfg, dict) else None
+
+    if not base_ref:
+        validate_base_config(cfg_raw)
+        return cfg_raw
+
+    base_ref_path = Path(str(base_ref))
+    if base_ref_path.is_absolute():
+        base_path = base_ref_path
+    elif project_root is not None:
+        base_path = Path(project_root) / base_ref_path
+    else:
+        base_path = cfg_path.parent / base_ref_path
+
+    base_cfg = load_and_validate(base_path)
+
+    # Keep `run` metadata out of model parameter dict after resolution.
+    local_override = {k: v for k, v in cfg_raw.items() if k != "run"}
+    merged = _deep_merge_dicts(base_cfg, local_override)
+    validate_base_config(merged)
+    return merged

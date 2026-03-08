@@ -20,7 +20,7 @@ from src.competition_visualization import (
     plot_competition_downstream_shares_vs_p,
     plot_competition_teacher_profit_vs_p,
 )
-from src.config_loader import load_and_validate, load_yaml
+from src.config_loader import load_with_base_config, load_yaml
 from src.scaling_laws import build_tierA_from_config
 
 
@@ -29,9 +29,9 @@ def main() -> None:
     competition_cfg_path = os.path.join(base_dir, "config", "competition.yaml")
     competition_cfg = load_yaml(competition_cfg_path)
 
+    cfg = load_with_base_config(competition_cfg_path, project_root=base_dir)
     base_cfg_rel = str(competition_cfg.get("run", {}).get("base_config", "config/base.yaml"))
     cfg_path = os.path.join(base_dir, base_cfg_rel)
-    cfg = load_and_validate(cfg_path)
     tech = build_tierA_from_config(cfg)
     N = float(cfg["student"]["N0"])
 

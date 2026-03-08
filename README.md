@@ -37,6 +37,8 @@ Configs:
 - `config/soft.yaml`
 - `config/competition.yaml`
 
+`soft.yaml` and `competition.yaml` both support `run.base_config` to reuse `base.yaml` and keep only scenario-specific overrides.
+
 Reference docs:
 
 - `docs/baseline_reconstruction.md`
