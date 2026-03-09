@@ -45,8 +45,14 @@ competition:
 
     # Stage-4 refinement controls.
     run_refinement: true
+    refinement_interval: [32500.0, 37500.0]
     refinement_tol: 1000.0
     max_refinement_steps: 20
+
+    # Improve visual alignment by densifying computed points near the refined interval.
+    dense_plot_near_critical: true
+    near_critical_points: 31
+    near_critical_margin: 0.0
 
     tolerances:
       price_boundary_tol: 1e-8

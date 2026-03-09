@@ -875,6 +875,139 @@ def refine_market_size_threshold(
     return ThresholdRefinementResult(summary=summary, history=history_sorted)
 
 
+def refine_market_size_threshold_in_interval(
+    *,
+    cfg: dict,
+    tech: TierATechnology,
+    N: float,
+    base_comp: CompetitionParams,
+    downstream_solver_params: DownstreamSolverParams,
+    threshold_settings: ThresholdInteriorSettings,
+    interval_low: float,
+    interval_high: float,
+    refinement_tol: float,
+    max_refinement_steps: int,
+    p_grid_override: Optional[Sequence[float]] = None,
+    include_weak: bool = True,
+    use_student_cache: bool = True,
+    student_cache_precision: int = 8,
+) -> ThresholdRefinementResult:
+    """Refine threshold directly inside a user-specified interval.
+
+    Interval semantics are consistent with strict-classification threshold logic:
+    - left endpoint should be interior (True)
+    - right endpoint should be non-interior (False)
+    """
+    left = float(interval_low)
+    right = float(interval_high)
+    if not (right > left):
+        raise ValueError("Require interval_high > interval_low.")
+    if refinement_tol <= 0:
+        raise ValueError("refinement_tol must be > 0.")
+    if max_refinement_steps <= 0:
+        raise ValueError("max_refinement_steps must be > 0.")
+
+    left_row = evaluate_market_size_once(
+        cfg=cfg,
+        tech=tech,
+        N=N,
+        base_comp=base_comp,
+        downstream_solver_params=downstream_solver_params,
+        market_size=left,
+        threshold_settings=threshold_settings,
+        p_grid_override=p_grid_override,
+        include_weak=include_weak,
+        use_student_cache=use_student_cache,
+        student_cache_precision=student_cache_precision,
+    )
+    right_row = evaluate_market_size_once(
+        cfg=cfg,
+        tech=tech,
+        N=N,
+        base_comp=base_comp,
+        downstream_solver_params=downstream_solver_params,
+        market_size=right,
+        threshold_settings=threshold_settings,
+        p_grid_override=p_grid_override,
+        include_weak=include_weak,
+        use_student_cache=use_student_cache,
+        student_cache_precision=student_cache_precision,
+    )
+
+    history: List[MarketSizeEvaluationResult] = [left_row, right_row]
+
+    if (not left_row.overall_interior_strict) or right_row.overall_interior_strict:
+        summary = ThresholdRefinementSummary(
+            lower_bound=left,
+            upper_bound=right,
+            midpoint_estimate=0.5 * (left + right),
+            interval_width=right - left,
+            steps=0,
+            trustworthy=False,
+            skipped=True,
+            message=(
+                "Interval does not bracket a strict True->False change: "
+                "expected left=True and right=False."
+            ),
+        )
+        return ThresholdRefinementResult(summary=summary, history=history)
+
+    cache: Dict[float, MarketSizeEvaluationResult] = {
+        float(left_row.market_size): left_row,
+        float(right_row.market_size): right_row,
+    }
+
+    steps = 0
+    while (right - left) > float(refinement_tol) and steps < int(max_refinement_steps):
+        mid = 0.5 * (left + right)
+        if mid in cache:
+            mid_row = cache[mid]
+        else:
+            mid_row = evaluate_market_size_once(
+                cfg=cfg,
+                tech=tech,
+                N=N,
+                base_comp=base_comp,
+                downstream_solver_params=downstream_solver_params,
+                market_size=mid,
+                threshold_settings=threshold_settings,
+                p_grid_override=p_grid_override,
+                include_weak=include_weak,
+                use_student_cache=use_student_cache,
+                student_cache_precision=student_cache_precision,
+            )
+            cache[mid] = mid_row
+            history.append(mid_row)
+
+        if mid_row.overall_interior_strict:
+            left = mid
+        else:
+            right = mid
+        steps += 1
+
+    width = float(right - left)
+    midpoint = float(0.5 * (left + right))
+    trustworthy = bool(width <= float(refinement_tol))
+    msg = (
+        "Interval refinement converged to requested tolerance."
+        if trustworthy
+        else "Interval refinement stopped at max_refinement_steps before reaching tolerance."
+    )
+
+    summary = ThresholdRefinementSummary(
+        lower_bound=float(left),
+        upper_bound=float(right),
+        midpoint_estimate=midpoint,
+        interval_width=width,
+        steps=int(steps),
+        trustworthy=trustworthy,
+        skipped=False,
+        message=msg,
+    )
+    history_sorted = sorted(history, key=lambda r: float(r.market_size))
+    return ThresholdRefinementResult(summary=summary, history=history_sorted)
+
+
 def refinement_history_to_dataframe(rows: Sequence[MarketSizeEvaluationResult]):
     import pandas as pd
 
