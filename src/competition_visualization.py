@@ -309,6 +309,32 @@ def plot_competition_threshold_teacher_payoff_vs_market_size(
     plt.close(fig)
 
 
+def plot_competition_threshold_student_payoff_vs_market_size(
+    *,
+    df: pd.DataFrame,
+    outdir: Path,
+    market_col: str = "market_size",
+    payoff_col: str = "pi_student_total_at_p_star",
+    critical_m: Optional[float] = None,
+    critical_interval: Optional[Tuple[float, float]] = None,
+    stem: str = "fig_comp_threshold_08_student_payoff_vs_market_size",
+) -> None:
+    data = df.sort_values(by=market_col).copy()
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(data[market_col], data[payoff_col], marker="o", label="Student total payoff at teacher optimum")
+    _annotate_critical_m(ax, critical_m=critical_m, critical_interval=critical_interval)
+
+    ax.set_xlabel("Downstream market size")
+    ax.set_ylabel("Student total payoff")
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend()
+
+    _save_figure(fig, outdir / stem)
+    plt.close(fig)
+
+
 def plot_competition_threshold_distance_diagnostics_vs_market_size(
     *,
     df: pd.DataFrame,
@@ -398,6 +424,12 @@ def plot_competition_threshold_suite(
         critical_interval=critical_interval,
     )
     plot_competition_threshold_teacher_payoff_vs_market_size(
+        df=df,
+        outdir=outdir,
+        critical_m=critical_m,
+        critical_interval=critical_interval,
+    )
+    plot_competition_threshold_student_payoff_vs_market_size(
         df=df,
         outdir=outdir,
         critical_m=critical_m,
