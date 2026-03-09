@@ -162,3 +162,169 @@ def plot_competition_threshold_strict_vs_market_size(
 
     _save_figure(fig, outdir / stem)
     plt.close(fig)
+
+
+def plot_competition_threshold_weak_vs_market_size(
+    *,
+    df: pd.DataFrame,
+    outdir: Path,
+    market_col: str = "market_size",
+    weak_col: str = "overall_interior_weak",
+    stem: str = "fig_comp_threshold_02_weak_vs_market_size",
+) -> None:
+    """Plot weak interior classification (0/1) against market size."""
+    if weak_col not in df.columns:
+        return
+
+    data = df.sort_values(by=market_col).copy()
+    # Handle optional None values robustly.
+    y = data[weak_col].fillna(False).astype(int)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.step(data[market_col], y, where="post", label="Weak interior (1=yes)")
+    ax.scatter(data[market_col], y, s=20)
+
+    ax.set_xlabel("Downstream market size")
+    ax.set_ylabel("Weak interior classification")
+    ax.set_ylim(-0.05, 1.05)
+    ax.set_yticks([0, 1])
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend()
+
+    _save_figure(fig, outdir / stem)
+    plt.close(fig)
+
+
+def plot_competition_threshold_p_star_vs_market_size(
+    *,
+    df: pd.DataFrame,
+    outdir: Path,
+    market_col: str = "market_size",
+    p_col: str = "p_star",
+    stem: str = "fig_comp_threshold_03_p_star_vs_market_size",
+) -> None:
+    data = df.sort_values(by=market_col).copy()
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(data[market_col], data[p_col], marker="o", label=r"$p^*(M)$")
+
+    ax.set_xlabel("Downstream market size")
+    ax.set_ylabel("Teacher optimal upstream price")
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend()
+
+    _save_figure(fig, outdir / stem)
+    plt.close(fig)
+
+
+def plot_competition_threshold_d_star_vs_market_size(
+    *,
+    df: pd.DataFrame,
+    outdir: Path,
+    market_col: str = "market_size",
+    d_col: str = "D_star",
+    stem: str = "fig_comp_threshold_04_d_star_vs_market_size",
+) -> None:
+    data = df.sort_values(by=market_col).copy()
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(data[market_col], data[d_col], marker="o", label=r"$D^*(M)$")
+
+    ax.set_xlabel("Downstream market size")
+    ax.set_ylabel("Student equilibrium training demand")
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend()
+
+    _save_figure(fig, outdir / stem)
+    plt.close(fig)
+
+
+def plot_competition_threshold_teacher_payoff_vs_market_size(
+    *,
+    df: pd.DataFrame,
+    outdir: Path,
+    market_col: str = "market_size",
+    payoff_col: str = "pi_teacher_total_star",
+    stem: str = "fig_comp_threshold_05_teacher_payoff_vs_market_size",
+) -> None:
+    data = df.sort_values(by=market_col).copy()
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(data[market_col], data[payoff_col], marker="o", label="Teacher total payoff at optimum")
+
+    ax.set_xlabel("Downstream market size")
+    ax.set_ylabel("Teacher total payoff")
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend()
+
+    _save_figure(fig, outdir / stem)
+    plt.close(fig)
+
+
+def plot_competition_threshold_distance_diagnostics_vs_market_size(
+    *,
+    df: pd.DataFrame,
+    outdir: Path,
+    market_col: str = "market_size",
+    price_dist_col: str = "price_distance_to_boundary",
+    demand_dist_col: str = "demand_distance_to_boundary",
+    stem: str = "fig_comp_threshold_06_distances_vs_market_size",
+) -> None:
+    data = df.sort_values(by=market_col).copy()
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(data[market_col], data[price_dist_col], marker="o", label="Price distance to boundary")
+    ax.plot(data[market_col], data[demand_dist_col], marker="o", label="Demand distance to boundary")
+
+    ax.set_xlabel("Downstream market size")
+    ax.set_ylabel("Distance to boundary")
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend()
+
+    _save_figure(fig, outdir / stem)
+    plt.close(fig)
+
+
+def plot_competition_threshold_min_share_vs_market_size(
+    *,
+    df: pd.DataFrame,
+    outdir: Path,
+    market_col: str = "market_size",
+    min_share_col: str = "min_share",
+    stem: str = "fig_comp_threshold_07_min_share_vs_market_size",
+) -> None:
+    data = df.sort_values(by=market_col).copy()
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(data[market_col], data[min_share_col], marker="o", label="Min downstream share")
+
+    ax.set_xlabel("Downstream market size")
+    ax.set_ylabel("Minimum of (s_T, s_S, s_0)")
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend()
+
+    _save_figure(fig, outdir / stem)
+    plt.close(fig)
+
+
+def plot_competition_threshold_suite(
+    *,
+    df: pd.DataFrame,
+    outdir: Path,
+    include_weak: bool = True,
+) -> None:
+    """Generate the Stage-5 threshold figure suite from a saved table/DataFrame."""
+    plot_competition_threshold_strict_vs_market_size(df=df, outdir=outdir)
+    if include_weak:
+        plot_competition_threshold_weak_vs_market_size(df=df, outdir=outdir)
+    plot_competition_threshold_p_star_vs_market_size(df=df, outdir=outdir)
+    plot_competition_threshold_d_star_vs_market_size(df=df, outdir=outdir)
+    plot_competition_threshold_teacher_payoff_vs_market_size(df=df, outdir=outdir)
+    plot_competition_threshold_distance_diagnostics_vs_market_size(df=df, outdir=outdir)
+    plot_competition_threshold_min_share_vs_market_size(df=df, outdir=outdir)

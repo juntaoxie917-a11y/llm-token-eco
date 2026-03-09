@@ -11,6 +11,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from dataclasses import asdict
+import json
+from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from .competition_downstream_solver import DownstreamSolverParams
@@ -162,6 +164,35 @@ class ThresholdRefinementSummary:
 class ThresholdRefinementResult:
     summary: ThresholdRefinementSummary
     history: List[MarketSizeEvaluationResult]
+
+
+@dataclass(frozen=True)
+class ThresholdArtifacts:
+    sweep_csv_path: str
+    summary_json_path: str
+    refinement_history_csv_path: Optional[str]
+
+
+def build_threshold_settings_from_config(competition_cfg: dict) -> ThresholdInteriorSettings:
+    """Build threshold-classification tolerances from config with defaults.
+
+    Expected optional path:
+      competition.threshold_analysis.tolerances
+    """
+    tcfg = (
+        competition_cfg.get("competition", {})
+        .get("threshold_analysis", {})
+        .get("tolerances", {})
+    )
+
+    return ThresholdInteriorSettings(
+        price_boundary_tol=float(tcfg.get("price_boundary_tol", 1e-8)),
+        d_boundary_tol=float(tcfg.get("d_boundary_tol", 1e-8)),
+        downstream_price_boundary_tol=float(tcfg.get("downstream_price_boundary_tol", 1e-8)),
+        share_tol=float(tcfg.get("share_tol", 1e-8)),
+        solver_residual_tol=float(tcfg.get("solver_residual_tol", 1e-4)),
+        weak_share_tol=float(tcfg.get("weak_share_tol", 1e-10)),
+    )
 
 
 def _first_reason(reasons: Sequence[str], allowed_prefix: str) -> Optional[str]:
@@ -848,3 +879,77 @@ def refinement_history_to_dataframe(rows: Sequence[MarketSizeEvaluationResult]):
     import pandas as pd
 
     return pd.DataFrame([asdict(r) for r in rows])
+
+
+def build_threshold_summary(
+    *,
+    sweep: MarketSizeSweepResult,
+    refinement: Optional[ThresholdRefinementResult] = None,
+) -> Dict[str, object]:
+    """Build a compact JSON-serializable threshold summary."""
+    summary: Dict[str, object] = {
+        "coarse": {
+            "points": int(len(sweep.rows)),
+            "is_monotone_nonincreasing": bool(sweep.pattern.is_monotone_nonincreasing),
+            "transition_count": int(sweep.pattern.transition_count),
+            "transition_intervals": [list(x) for x in sweep.pattern.transition_intervals],
+            "supports_single_threshold": bool(sweep.pattern.supports_single_threshold),
+            "message": str(sweep.pattern.message),
+            "near_transition_failure_cause_counts": dict(sweep.pattern.near_transition_failure_cause_counts),
+        }
+    }
+
+    if refinement is None:
+        summary["refinement"] = {
+            "run": False,
+            "message": "Refinement not requested.",
+        }
+    else:
+        rs = refinement.summary
+        summary["refinement"] = {
+            "run": True,
+            "lower_bound": rs.lower_bound,
+            "upper_bound": rs.upper_bound,
+            "midpoint_estimate": rs.midpoint_estimate,
+            "interval_width": rs.interval_width,
+            "steps": int(rs.steps),
+            "trustworthy": bool(rs.trustworthy),
+            "skipped": bool(rs.skipped),
+            "message": str(rs.message),
+            "history_points": int(len(refinement.history)),
+        }
+    return summary
+
+
+def save_threshold_outputs(
+    *,
+    sweep: MarketSizeSweepResult,
+    tables_dir: str,
+    refinement: Optional[ThresholdRefinementResult] = None,
+    stem: str = "competition_threshold",
+) -> ThresholdArtifacts:
+    """Save Stage-5 threshold outputs: sweep table, summary JSON, and optional refinement history."""
+    out_dir = Path(tables_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    sweep_csv_path = str(out_dir / f"{stem}_sweep_results.csv")
+    summary_json_path = str(out_dir / f"{stem}_summary.json")
+    refinement_history_csv_path: Optional[str] = None
+
+    sweep_df = sweep_results_to_dataframe(sweep.rows)
+    sweep_df.to_csv(sweep_csv_path, index=False)
+
+    if refinement is not None and len(refinement.history) > 0:
+        refinement_history_csv_path = str(out_dir / f"{stem}_refinement_history.csv")
+        hist_df = refinement_history_to_dataframe(refinement.history)
+        hist_df.to_csv(refinement_history_csv_path, index=False)
+
+    payload = build_threshold_summary(sweep=sweep, refinement=refinement)
+    with open(summary_json_path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2)
+
+    return ThresholdArtifacts(
+        sweep_csv_path=sweep_csv_path,
+        summary_json_path=summary_json_path,
+        refinement_history_csv_path=refinement_history_csv_path,
+    )
