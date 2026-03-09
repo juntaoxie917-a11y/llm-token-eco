@@ -42,19 +42,15 @@ def _annotate_critical_m(
     y_text = y0 + 0.92 * (y1 - y0)
     if critical_interval is None:
         text = fr"$m_c\approx {m_star:.4g}$"
-    else:
-        lo, hi = float(critical_interval[0]), float(critical_interval[1])
-        text = fr"$m_c\in[{lo:.4g}, {hi:.4g}]$"
-
-    ax.text(
-        m_star,
-        y_text,
-        text,
-        fontsize=9,
-        va="top",
-        ha="left",
-        bbox=dict(boxstyle="round", facecolor="white", alpha=0.6, linewidth=0.5),
-    )
+        ax.text(
+            m_star,
+            y_text,
+            text,
+            fontsize=9,
+            va="top",
+            ha="left",
+            bbox=dict(boxstyle="round", facecolor="white", alpha=0.6, linewidth=0.5),
+        )
 
 
 def plot_competition_d_star_vs_p(*, df: pd.DataFrame, outdir: Path, stem: str = "fig_comp_01_dstar_vs_p") -> None:
