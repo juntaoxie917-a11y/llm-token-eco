@@ -134,3 +134,31 @@ def plot_competition_downstream_shares_vs_p(
 
     _save_figure(fig, outdir / stem)
     plt.close(fig)
+
+
+def plot_competition_threshold_strict_vs_market_size(
+    *,
+    df: pd.DataFrame,
+    outdir: Path,
+    market_col: str = "market_size",
+    strict_col: str = "overall_interior_strict",
+    stem: str = "fig_comp_threshold_01_strict_vs_market_size",
+) -> None:
+    """Plot strict interior classification (0/1) against market size."""
+    data = df.sort_values(by=market_col).copy()
+    y = data[strict_col].astype(int)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.step(data[market_col], y, where="post", label="Strict interior (1=yes)")
+    ax.scatter(data[market_col], y, s=20)
+
+    ax.set_xlabel("Downstream market size")
+    ax.set_ylabel("Strict interior classification")
+    ax.set_ylim(-0.05, 1.05)
+    ax.set_yticks([0, 1])
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend()
+
+    _save_figure(fig, outdir / stem)
+    plt.close(fig)

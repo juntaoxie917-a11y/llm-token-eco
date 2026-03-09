@@ -10,7 +10,8 @@ under a three-layer criterion:
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from typing import List, Optional, Sequence
+from dataclasses import asdict
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from .competition_downstream_solver import DownstreamSolverParams
 from .competition_simulation import run_competition_grid_simulation
@@ -125,6 +126,42 @@ class MarketSizeEvaluationResult:
     teacher_reason: Optional[str]
     student_reason: Optional[str]
     downstream_reason: Optional[str]
+
+
+@dataclass(frozen=True)
+class ThresholdPatternSummary:
+    is_monotone_nonincreasing: bool
+    transition_count: int
+    transition_intervals: List[Tuple[float, float]]
+    supports_single_threshold: bool
+    message: str
+
+    # Failure-cause summary near transitions.
+    near_transition_failure_cause_counts: Dict[str, int]
+
+
+@dataclass(frozen=True)
+class MarketSizeSweepResult:
+    rows: List[MarketSizeEvaluationResult]
+    pattern: ThresholdPatternSummary
+
+
+@dataclass(frozen=True)
+class ThresholdRefinementSummary:
+    lower_bound: Optional[float]
+    upper_bound: Optional[float]
+    midpoint_estimate: Optional[float]
+    interval_width: Optional[float]
+    steps: int
+    trustworthy: bool
+    skipped: bool
+    message: str
+
+
+@dataclass(frozen=True)
+class ThresholdRefinementResult:
+    summary: ThresholdRefinementSummary
+    history: List[MarketSizeEvaluationResult]
 
 
 def _first_reason(reasons: Sequence[str], allowed_prefix: str) -> Optional[str]:
@@ -479,3 +516,335 @@ def evaluate_market_size_once(
         student_reason=cls.student_reason,
         downstream_reason=cls.downstream_reason,
     )
+
+
+def _classify_failure_cause(row: MarketSizeEvaluationResult) -> str:
+    teacher_issue = bool(row.teacher_price_at_lower_boundary or row.teacher_price_at_upper_boundary)
+    student_issue = bool(row.student_D_at_lower_boundary or row.student_D_at_upper_boundary)
+    downstream_issue = bool(
+        (not row.downstream_solver_ok)
+        or row.downstream_price_at_boundary
+        or (row.downstream_reason is not None)
+        or ("downstream_share_too_small" in row.reasons)
+        or ("residual_too_large" in row.reasons)
+    )
+
+    active = int(teacher_issue) + int(student_issue) + int(downstream_issue)
+    if active >= 2:
+        return "mixed"
+    if teacher_issue:
+        return "teacher_boundary"
+    if student_issue:
+        return "student_boundary"
+    if downstream_issue:
+        return "downstream_failure"
+    return "unknown"
+
+
+def check_threshold_pattern(rows: Sequence[MarketSizeEvaluationResult]) -> ThresholdPatternSummary:
+    """Check whether strict interior classification matches a single-threshold pattern.
+
+    Expected pattern for a clean threshold interpretation:
+    - small market sizes: strict interior=True
+    - large market sizes: strict interior=False
+    - at most one True->False transition.
+    """
+    if not rows:
+        return ThresholdPatternSummary(
+            is_monotone_nonincreasing=False,
+            transition_count=0,
+            transition_intervals=[],
+            supports_single_threshold=False,
+            message="No rows provided.",
+            near_transition_failure_cause_counts={},
+        )
+
+    rows_sorted = sorted(rows, key=lambda r: float(r.market_size))
+    flags = [bool(r.overall_interior_strict) for r in rows_sorted]
+
+    transitions_idx: List[int] = []
+    for i in range(len(flags) - 1):
+        if flags[i] != flags[i + 1]:
+            transitions_idx.append(i)
+
+    monotone_nonincreasing = all((not flags[i + 1]) or flags[i] for i in range(len(flags) - 1))
+
+    transition_intervals: List[Tuple[float, float]] = [
+        (float(rows_sorted[i].market_size), float(rows_sorted[i + 1].market_size))
+        for i in transitions_idx
+    ]
+
+    has_true = any(flags)
+    has_false = any(not x for x in flags)
+    supports_single_threshold = bool(
+        monotone_nonincreasing and len(transition_intervals) <= 1 and has_true and has_false
+    )
+
+    cause_counts: Dict[str, int] = {}
+    for i in transitions_idx:
+        lo = max(0, i - 1)
+        hi = min(len(rows_sorted) - 1, i + 2)
+        for j in range(lo, hi + 1):
+            row = rows_sorted[j]
+            if row.overall_interior_strict:
+                continue
+            cause = _classify_failure_cause(row)
+            cause_counts[cause] = int(cause_counts.get(cause, 0) + 1)
+
+    if supports_single_threshold:
+        msg = "Pattern is consistent with a single threshold (strict classification)."
+    elif monotone_nonincreasing and (not has_true or not has_false):
+        msg = "Pattern is monotone but no interior/non-interior switch is observed in this grid."
+    elif not monotone_nonincreasing:
+        msg = "Pattern is non-monotone; single-threshold interpretation is not supported."
+    else:
+        msg = "Pattern is not suitable for a unique-threshold claim."
+
+    return ThresholdPatternSummary(
+        is_monotone_nonincreasing=bool(monotone_nonincreasing),
+        transition_count=int(len(transition_intervals)),
+        transition_intervals=transition_intervals,
+        supports_single_threshold=supports_single_threshold,
+        message=msg,
+        near_transition_failure_cause_counts=cause_counts,
+    )
+
+
+def run_market_size_sweep(
+    *,
+    cfg: dict,
+    tech: TierATechnology,
+    N: float,
+    base_comp: CompetitionParams,
+    downstream_solver_params: DownstreamSolverParams,
+    market_size_grid: Iterable[float],
+    threshold_settings: ThresholdInteriorSettings,
+    p_grid_override: Optional[Sequence[float]] = None,
+    include_weak: bool = True,
+    use_student_cache: bool = True,
+    student_cache_precision: int = 8,
+    output_csv_path: Optional[str] = None,
+) -> MarketSizeSweepResult:
+    """Run a coarse market-size sweep using the Stage-2 single-point wrapper."""
+    rows: List[MarketSizeEvaluationResult] = []
+    for m in market_size_grid:
+        row = evaluate_market_size_once(
+            cfg=cfg,
+            tech=tech,
+            N=N,
+            base_comp=base_comp,
+            downstream_solver_params=downstream_solver_params,
+            market_size=float(m),
+            threshold_settings=threshold_settings,
+            p_grid_override=p_grid_override,
+            include_weak=include_weak,
+            use_student_cache=use_student_cache,
+            student_cache_precision=student_cache_precision,
+        )
+        rows.append(row)
+
+    rows = sorted(rows, key=lambda r: float(r.market_size))
+    pattern = check_threshold_pattern(rows)
+
+    if output_csv_path is not None:
+        df = sweep_results_to_dataframe(rows)
+        df.to_csv(output_csv_path, index=False)
+
+    return MarketSizeSweepResult(rows=rows, pattern=pattern)
+
+
+def sweep_results_to_dataframe(rows: Sequence[MarketSizeEvaluationResult]):
+    import pandas as pd
+
+    return pd.DataFrame([asdict(r) for r in rows])
+
+
+def refine_market_size_threshold(
+    *,
+    cfg: dict,
+    tech: TierATechnology,
+    N: float,
+    base_comp: CompetitionParams,
+    downstream_solver_params: DownstreamSolverParams,
+    threshold_settings: ThresholdInteriorSettings,
+    coarse_sweep: MarketSizeSweepResult,
+    refinement_tol: float,
+    max_refinement_steps: int,
+    p_grid_override: Optional[Sequence[float]] = None,
+    include_weak: bool = True,
+    use_student_cache: bool = True,
+    student_cache_precision: int = 8,
+) -> ThresholdRefinementResult:
+    """Refine the threshold interval using strict-classification bisection.
+
+    Refinement runs only when coarse sweep supports a single-threshold
+    interpretation and provides exactly one transition interval.
+    """
+    if refinement_tol <= 0:
+        raise ValueError("refinement_tol must be > 0.")
+    if max_refinement_steps <= 0:
+        raise ValueError("max_refinement_steps must be > 0.")
+
+    pattern = coarse_sweep.pattern
+    if not pattern.supports_single_threshold:
+        summary = ThresholdRefinementSummary(
+            lower_bound=None,
+            upper_bound=None,
+            midpoint_estimate=None,
+            interval_width=None,
+            steps=0,
+            trustworthy=False,
+            skipped=True,
+            message=(
+                "Refinement skipped: coarse sweep does not support a single-threshold "
+                "interpretation."
+            ),
+        )
+        return ThresholdRefinementResult(summary=summary, history=[])
+
+    if len(pattern.transition_intervals) != 1:
+        summary = ThresholdRefinementSummary(
+            lower_bound=None,
+            upper_bound=None,
+            midpoint_estimate=None,
+            interval_width=None,
+            steps=0,
+            trustworthy=False,
+            skipped=True,
+            message="Refinement skipped: expected exactly one transition interval.",
+        )
+        return ThresholdRefinementResult(summary=summary, history=[])
+
+    left_m, right_m = pattern.transition_intervals[0]
+    if not (right_m > left_m):
+        summary = ThresholdRefinementSummary(
+            lower_bound=None,
+            upper_bound=None,
+            midpoint_estimate=None,
+            interval_width=None,
+            steps=0,
+            trustworthy=False,
+            skipped=True,
+            message="Refinement skipped: invalid transition interval.",
+        )
+        return ThresholdRefinementResult(summary=summary, history=[])
+
+    # Reuse already-computed coarse points where possible.
+    coarse_map = {float(r.market_size): r for r in coarse_sweep.rows}
+
+    left_row = coarse_map.get(float(left_m))
+    if left_row is None:
+        left_row = evaluate_market_size_once(
+            cfg=cfg,
+            tech=tech,
+            N=N,
+            base_comp=base_comp,
+            downstream_solver_params=downstream_solver_params,
+            market_size=float(left_m),
+            threshold_settings=threshold_settings,
+            p_grid_override=p_grid_override,
+            include_weak=include_weak,
+            use_student_cache=use_student_cache,
+            student_cache_precision=student_cache_precision,
+        )
+
+    right_row = coarse_map.get(float(right_m))
+    if right_row is None:
+        right_row = evaluate_market_size_once(
+            cfg=cfg,
+            tech=tech,
+            N=N,
+            base_comp=base_comp,
+            downstream_solver_params=downstream_solver_params,
+            market_size=float(right_m),
+            threshold_settings=threshold_settings,
+            p_grid_override=p_grid_override,
+            include_weak=include_weak,
+            use_student_cache=use_student_cache,
+            student_cache_precision=student_cache_precision,
+        )
+
+    # Guard against inconsistent endpoint signs.
+    if not left_row.overall_interior_strict or right_row.overall_interior_strict:
+        summary = ThresholdRefinementSummary(
+            lower_bound=float(left_m),
+            upper_bound=float(right_m),
+            midpoint_estimate=float(0.5 * (left_m + right_m)),
+            interval_width=float(right_m - left_m),
+            steps=0,
+            trustworthy=False,
+            skipped=True,
+            message=(
+                "Refinement skipped: transition endpoints do not bracket a True->False "
+                "strict-classification change."
+            ),
+        )
+        return ThresholdRefinementResult(summary=summary, history=[left_row, right_row])
+
+    history: List[MarketSizeEvaluationResult] = [left_row, right_row]
+    cache: Dict[float, MarketSizeEvaluationResult] = {
+        float(left_row.market_size): left_row,
+        float(right_row.market_size): right_row,
+    }
+
+    steps = 0
+    left = float(left_m)
+    right = float(right_m)
+
+    while (right - left) > float(refinement_tol) and steps < int(max_refinement_steps):
+        mid = 0.5 * (left + right)
+        if mid in cache:
+            mid_row = cache[mid]
+        else:
+            mid_row = evaluate_market_size_once(
+                cfg=cfg,
+                tech=tech,
+                N=N,
+                base_comp=base_comp,
+                downstream_solver_params=downstream_solver_params,
+                market_size=float(mid),
+                threshold_settings=threshold_settings,
+                p_grid_override=p_grid_override,
+                include_weak=include_weak,
+                use_student_cache=use_student_cache,
+                student_cache_precision=student_cache_precision,
+            )
+            cache[mid] = mid_row
+            history.append(mid_row)
+
+        # Keep invariant: left=True(interior), right=False(non-interior).
+        if mid_row.overall_interior_strict:
+            left = float(mid)
+        else:
+            right = float(mid)
+
+        steps += 1
+
+    width = float(right - left)
+    midpoint = float(0.5 * (left + right))
+    trustworthy = bool(width <= float(refinement_tol))
+
+    if trustworthy:
+        msg = "Refinement converged to requested interval tolerance."
+    else:
+        msg = "Refinement stopped at max_refinement_steps before reaching tolerance."
+
+    summary = ThresholdRefinementSummary(
+        lower_bound=float(left),
+        upper_bound=float(right),
+        midpoint_estimate=midpoint,
+        interval_width=width,
+        steps=int(steps),
+        trustworthy=trustworthy,
+        skipped=False,
+        message=msg,
+    )
+
+    history_sorted = sorted(history, key=lambda r: float(r.market_size))
+    return ThresholdRefinementResult(summary=summary, history=history_sorted)
+
+
+def refinement_history_to_dataframe(rows: Sequence[MarketSizeEvaluationResult]):
+    import pandas as pd
+
+    return pd.DataFrame([asdict(r) for r in rows])
