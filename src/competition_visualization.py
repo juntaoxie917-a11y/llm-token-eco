@@ -64,6 +64,34 @@ def plot_competition_teacher_profit_vs_p(
     plt.close(fig)
 
 
+def plot_competition_student_profit_vs_p(
+    *,
+    df: pd.DataFrame,
+    outdir: Path,
+    stem: str = "fig_comp_05_student_profit_vs_p",
+) -> None:
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    p = df["p"]
+    y = df["pi_student_total"]
+    idx_nash = int(df["pi_teacher_total"].idxmax())
+    p_nash = float(df.loc[idx_nash, "p"])
+    y_nash = float(df.loc[idx_nash, "pi_student_total"])
+
+    ax.plot(p, y, label=r"Student total profit")
+    ax.axvline(p_nash, linestyle="--", linewidth=1.0, label=fr"$p^*={p_nash:.3g}$")
+    ax.scatter([p_nash], [y_nash], zorder=5)
+
+    ax.set_xlabel(r"Upstream token price $p$")
+    ax.set_ylabel(r"Student total profit")
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend()
+
+    _save_figure(fig, outdir / stem)
+    plt.close(fig)
+
+
 def plot_competition_downstream_prices_vs_p(
     *,
     df: pd.DataFrame,

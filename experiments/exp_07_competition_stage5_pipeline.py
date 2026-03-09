@@ -18,6 +18,7 @@ from src.competition_visualization import (
     plot_competition_d_star_vs_p,
     plot_competition_downstream_prices_vs_p,
     plot_competition_downstream_shares_vs_p,
+    plot_competition_student_profit_vs_p,
     plot_competition_teacher_profit_vs_p,
 )
 from src.config_loader import load_with_base_config, load_yaml
@@ -112,6 +113,7 @@ def main() -> None:
     plot_competition_teacher_profit_vs_p(df=df_saved, outdir=out_figs_path)
     plot_competition_downstream_prices_vs_p(df=df_saved, outdir=out_figs_path)
     plot_competition_downstream_shares_vs_p(df=df_saved, outdir=out_figs_path)
+    plot_competition_student_profit_vs_p(df=df_saved, outdir=out_figs_path)
 
     run_log = {
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -134,6 +136,7 @@ def main() -> None:
     print(" -", os.path.join(out_figs, "fig_comp_02_teacher_profit_vs_p.pdf"))
     print(" -", os.path.join(out_figs, "fig_comp_03_downstream_prices_vs_p.pdf"))
     print(" -", os.path.join(out_figs, "fig_comp_04_downstream_shares_vs_p.pdf"))
+    print(" -", os.path.join(out_figs, "fig_comp_05_student_profit_vs_p.pdf"))
 
 
 if __name__ == "__main__":

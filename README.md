@@ -76,3 +76,4 @@ For competition runs, key files include:
 - `results/figures/fig_comp_02_teacher_profit_vs_p.*`
 - `results/figures/fig_comp_03_downstream_prices_vs_p.*`
 - `results/figures/fig_comp_04_downstream_shares_vs_p.*`
+- `results/figures/fig_comp_05_student_profit_vs_p.*`
