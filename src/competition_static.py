@@ -11,6 +11,7 @@ It only provides:
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
 from typing import Any, Dict, Literal, Tuple
 
 import numpy as np
@@ -92,6 +93,8 @@ def build_competition_params_from_config(cfg: Dict[str, Any]) -> CompetitionPara
 def validate_competition_params(params: CompetitionParams) -> None:
     if params.M <= 0:
         raise ValueError("competition.M must be > 0.")
+    if not math.isfinite(params.u0):
+        raise ValueError("competition.u0 must be finite.")
     if params.tau <= 0:
         raise ValueError("competition.tau must be > 0.")
     if params.quality_scale <= 0:
