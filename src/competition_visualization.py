@@ -7,7 +7,7 @@ They never run equilibrium solvers.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Sequence, Tuple
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -447,3 +447,240 @@ def plot_competition_threshold_suite(
         critical_m=critical_m,
         critical_interval=critical_interval,
     )
+
+
+def plot_competition_sensitivity_p_star_vs_parameter(
+    *,
+    df: pd.DataFrame,
+    outdir: Path,
+    parameter_col: str,
+    stem: str,
+) -> None:
+    data = df.sort_values(by=parameter_col).copy()
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(data[parameter_col], data["p_star"], marker="o", label=r"$p^*$")
+    ax.set_xlabel(parameter_col)
+    ax.set_ylabel(r"Teacher optimal upstream price $p^*$")
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend()
+    _save_figure(fig, outdir / stem)
+    plt.close(fig)
+
+
+def plot_competition_sensitivity_d_star_vs_parameter(
+    *,
+    df: pd.DataFrame,
+    outdir: Path,
+    parameter_col: str,
+    stem: str,
+) -> None:
+    data = df.sort_values(by=parameter_col).copy()
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(data[parameter_col], data["D_star_at_p_star"], marker="o", label=r"$D^*$")
+    ax.set_xlabel(parameter_col)
+    ax.set_ylabel(r"Student equilibrium training demand $D^*$")
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend()
+    _save_figure(fig, outdir / stem)
+    plt.close(fig)
+
+
+def plot_competition_sensitivity_teacher_payoff_vs_parameter(
+    *,
+    df: pd.DataFrame,
+    outdir: Path,
+    parameter_col: str,
+    stem: str,
+) -> None:
+    data = df.sort_values(by=parameter_col).copy()
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(data[parameter_col], data["pi_teacher_star"], marker="o", label="Teacher total payoff")
+    ax.set_xlabel(parameter_col)
+    ax.set_ylabel("Teacher total payoff at optimum")
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend()
+    _save_figure(fig, outdir / stem)
+    plt.close(fig)
+
+
+def plot_competition_sensitivity_student_payoff_vs_parameter(
+    *,
+    df: pd.DataFrame,
+    outdir: Path,
+    parameter_col: str,
+    stem: str,
+) -> None:
+    data = df.sort_values(by=parameter_col).copy()
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(data[parameter_col], data["pi_student_star"], marker="o", label="Student total payoff")
+    ax.set_xlabel(parameter_col)
+    ax.set_ylabel("Student total payoff at teacher optimum")
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend()
+    _save_figure(fig, outdir / stem)
+    plt.close(fig)
+
+
+def plot_competition_sensitivity_interior_indicator_vs_parameter(
+    *,
+    df: pd.DataFrame,
+    outdir: Path,
+    parameter_col: str,
+    strict_col: str = "interior_equilibrium",
+    stem: str,
+) -> None:
+    data = df.sort_values(by=parameter_col).copy()
+    y = data[strict_col].astype(int)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.step(data[parameter_col], y, where="post", label="Strict interior (1=yes)")
+    ax.scatter(data[parameter_col], y, s=20)
+    ax.set_xlabel(parameter_col)
+    ax.set_ylabel("Strict interior classification")
+    ax.set_ylim(-0.05, 1.05)
+    ax.set_yticks([0, 1])
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend()
+    _save_figure(fig, outdir / stem)
+    plt.close(fig)
+
+
+def plot_competition_sensitivity_downstream_prices_vs_parameter(
+    *,
+    df: pd.DataFrame,
+    outdir: Path,
+    parameter_col: str,
+    stem: str,
+) -> None:
+    data = df.sort_values(by=parameter_col).copy()
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(data[parameter_col], data["P_T_star"], marker="o", label=r"$P_T^*$")
+    ax.plot(data[parameter_col], data["P_S_star"], marker="o", label=r"$P_S^*$")
+    ax.set_xlabel(parameter_col)
+    ax.set_ylabel("Downstream equilibrium prices")
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend()
+    _save_figure(fig, outdir / stem)
+    plt.close(fig)
+
+
+def plot_competition_sensitivity_downstream_shares_vs_parameter(
+    *,
+    df: pd.DataFrame,
+    outdir: Path,
+    parameter_col: str,
+    stem: str,
+) -> None:
+    data = df.sort_values(by=parameter_col).copy()
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(data[parameter_col], data["s_T_star"], marker="o", label=r"$s_T^*$")
+    ax.plot(data[parameter_col], data["s_S_star"], marker="o", label=r"$s_S^*$")
+    ax.plot(data[parameter_col], data["s_0_star"], marker="o", label=r"$s_0^*$")
+    ax.set_xlabel(parameter_col)
+    ax.set_ylabel("Downstream market shares")
+    ax.set_ylim(-0.02, 1.02)
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend()
+    _save_figure(fig, outdir / stem)
+    plt.close(fig)
+
+
+def plot_competition_teacher_profit_vs_p_multi_u0(
+    *,
+    curves: Sequence[tuple[float, pd.DataFrame]],
+    outdir: Path,
+    stem: str = "fig_u0_price_teacher_vs_p_multi",
+) -> None:
+    """Overlay teacher payoff-vs-p curves for multiple u0 values in one figure."""
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    for u0_val, df in sorted(curves, key=lambda x: float(x[0])):
+        ax.plot(df["p"], df["pi_teacher_total"], label=fr"$u_0={u0_val:.3g}$")
+
+    ax.set_xlabel(r"Upstream token price $p$")
+    ax.set_ylabel(r"Teacher total payoff")
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend(ncols=2)
+
+    _save_figure(fig, outdir / stem)
+    plt.close(fig)
+
+
+def plot_competition_student_profit_vs_p_multi_u0(
+    *,
+    curves: Sequence[tuple[float, pd.DataFrame]],
+    outdir: Path,
+    stem: str = "fig_u0_price_student_vs_p_multi",
+) -> None:
+    """Overlay student payoff-vs-p curves for multiple u0 values in one figure."""
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    for u0_val, df in sorted(curves, key=lambda x: float(x[0])):
+        ax.plot(df["p"], df["pi_student_total"], label=fr"$u_0={u0_val:.3g}$")
+
+    ax.set_xlabel(r"Upstream token price $p$")
+    ax.set_ylabel(r"Student total payoff")
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend(ncols=2)
+
+    _save_figure(fig, outdir / stem)
+    plt.close(fig)
+
+
+def plot_competition_teacher_profit_vs_p_multi_tau(
+    *,
+    curves: Sequence[tuple[float, pd.DataFrame]],
+    outdir: Path,
+    stem: str = "fig_tau_price_teacher_vs_p_multi_tau",
+) -> None:
+    """Overlay teacher payoff-vs-p curves for multiple tau values in one figure."""
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    for tau_val, df in sorted(curves, key=lambda x: float(x[0])):
+        ax.plot(df["p"], df["pi_teacher_total"], label=fr"$\tau={tau_val:.3g}$")
+
+    ax.set_xlabel(r"Upstream token price $p$")
+    ax.set_ylabel(r"Teacher total payoff")
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend(ncols=2)
+
+    _save_figure(fig, outdir / stem)
+    plt.close(fig)
+
+
+def plot_competition_student_profit_vs_p_multi_tau(
+    *,
+    curves: Sequence[tuple[float, pd.DataFrame]],
+    outdir: Path,
+    stem: str = "fig_tau_price_student_vs_p_multi_tau",
+) -> None:
+    """Overlay student payoff-vs-p curves for multiple tau values in one figure."""
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    for tau_val, df in sorted(curves, key=lambda x: float(x[0])):
+        ax.plot(df["p"], df["pi_student_total"], label=fr"$\tau={tau_val:.3g}$")
+
+    ax.set_xlabel(r"Upstream token price $p$")
+    ax.set_ylabel(r"Student total payoff")
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend(ncols=2)
+
+    _save_figure(fig, outdir / stem)
+    plt.close(fig)

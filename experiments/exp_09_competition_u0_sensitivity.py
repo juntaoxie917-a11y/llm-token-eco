@@ -1,0 +1,320 @@
+from __future__ import annotations
+
+import json
+import os
+import sys
+import time
+import csv
+from dataclasses import replace
+from pathlib import Path
+from typing import Iterable, List
+
+import numpy as np
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from src.competition_downstream_solver import build_downstream_solver_params_from_config
+from src.competition_sensitivity import run_u0_sensitivity, sensitivity_results_to_records
+from src.competition_sensitivity_config import build_competition_sensitivity_config
+from src.competition_simulation import run_competition_grid_simulation, to_dataframe
+from src.competition_static import build_competition_params_from_config
+from src.competition_threshold import build_threshold_settings_from_config
+from src.competition_visualization import (
+    load_competition_results_csv,
+    plot_competition_sensitivity_d_star_vs_parameter,
+    plot_competition_sensitivity_downstream_prices_vs_parameter,
+    plot_competition_sensitivity_downstream_shares_vs_parameter,
+    plot_competition_sensitivity_interior_indicator_vs_parameter,
+    plot_competition_sensitivity_p_star_vs_parameter,
+    plot_competition_sensitivity_student_payoff_vs_parameter,
+    plot_competition_sensitivity_teacher_payoff_vs_parameter,
+    plot_competition_student_profit_vs_p_multi_u0,
+    plot_competition_teacher_profit_vs_p_multi_u0,
+)
+from src.config_loader import load_with_base_config, load_yaml
+from src.scaling_laws import build_tierA_from_config
+
+
+def _as_float_or_none(value):
+    if value is None:
+        return None
+    v = float(value)
+    if np.isnan(v):
+        return None
+    return v
+
+
+def _is_monotone(values: Iterable[float], *, tol: float = 1e-10) -> str:
+    vals = [float(v) for v in values]
+    if len(vals) < 2:
+        return "insufficient_points"
+
+    nondec = all((vals[i + 1] - vals[i]) >= -tol for i in range(len(vals) - 1))
+    noninc = all((vals[i + 1] - vals[i]) <= tol for i in range(len(vals) - 1))
+
+    if nondec and noninc:
+        return "constant"
+    if nondec:
+        return "nondecreasing"
+    if noninc:
+        return "nonincreasing"
+    return "nonmonotone"
+
+
+def _build_u0_summary(df) -> dict:
+    data = df.sort_values(by="parameter_value").copy()
+    interior = data[data["interior_equilibrium"] == True]  # noqa: E712
+
+    first_u0 = _as_float_or_none(interior["parameter_value"].iloc[0]) if len(interior) > 0 else None
+    last_u0 = _as_float_or_none(interior["parameter_value"].iloc[-1]) if len(interior) > 0 else None
+
+    summary = {
+        "runs": int(len(data)),
+        "interior_count": int(data["interior_equilibrium"].sum()),
+        "interior_share": float(data["interior_equilibrium"].mean()) if len(data) > 0 else 0.0,
+        "failed_runs": int((~data["success"]).sum()),
+        "first_u0_with_interior": first_u0,
+        "last_u0_with_interior": last_u0,
+        "monotonicity": {
+            "p_star": _is_monotone(data["p_star"].values),
+            "D_star_at_p_star": _is_monotone(data["D_star_at_p_star"].values),
+            "pi_teacher_star": _is_monotone(data["pi_teacher_star"].values),
+            "pi_student_star": _is_monotone(data["pi_student_star"].values),
+            "s_T_star": _is_monotone(data["s_T_star"].values),
+            "s_S_star": _is_monotone(data["s_S_star"].values),
+            "s_0_star": _is_monotone(data["s_0_star"].values),
+        },
+    }
+    return summary
+
+
+def _resolve_market_size_for_u0(comp_cfg: dict, base_market_size: float) -> float:
+    u0_cfg = (
+        comp_cfg.get("competition", {})
+        .get("sensitivity_analysis", {})
+        .get("u0_sweep", {})
+    )
+
+    if "fixed_market_size" in u0_cfg:
+        m = float(u0_cfg["fixed_market_size"])
+        if m <= 0:
+            raise ValueError("competition.sensitivity_analysis.u0_sweep.fixed_market_size must be > 0.")
+        return m
+
+    if bool(u0_cfg.get("use_threshold_midpoint", False)):
+        summary_path = Path(
+            u0_cfg.get(
+                "threshold_summary_path",
+                os.path.join("results", "tables", "competition_threshold_summary.json"),
+            )
+        )
+        if not summary_path.is_absolute():
+            summary_path = Path.cwd() / summary_path
+        if summary_path.exists():
+            payload = json.loads(summary_path.read_text(encoding="utf-8"))
+            midpoint = (
+                payload.get("refinement", {}).get("midpoint_estimate")
+                if isinstance(payload, dict)
+                else None
+            )
+            if midpoint is not None:
+                midpoint = float(midpoint)
+                if midpoint > 0:
+                    return midpoint
+
+    return float(base_market_size)
+
+
+def _representative_u0_values(grid: List[float], requested: List[float] | None) -> List[float]:
+    if requested:
+        return sorted({float(x) for x in requested})
+
+    # Default: use the full sweep grid so the overlay chart fully reflects
+    # comparative statics rather than a sparse subset.
+    return sorted({float(x) for x in grid})
+
+
+def main() -> None:
+    project_root = Path(__file__).resolve().parents[1]
+    competition_cfg_path = project_root / "config" / "competition.yaml"
+
+    competition_cfg = load_yaml(competition_cfg_path)
+    cfg = load_with_base_config(competition_cfg_path, project_root=project_root)
+
+    tech = build_tierA_from_config(cfg)
+    N = float(cfg["student"]["N0"])
+
+    comp = build_competition_params_from_config(competition_cfg)
+    sp = build_downstream_solver_params_from_config(competition_cfg)
+    threshold_settings = build_threshold_settings_from_config(competition_cfg)
+    sens_cfg = build_competition_sensitivity_config(competition_cfg)
+
+    u0_grid = [float(x) for x in sens_cfg.u0_sweep.grid]
+    if len(u0_grid) < 2:
+        raise ValueError("u0 sensitivity requires at least two u0 points.")
+
+    market_size = _resolve_market_size_for_u0(competition_cfg, base_market_size=float(comp.M))
+    comp_local = replace(comp, M=market_size)
+
+    sweep = run_u0_sensitivity(
+        cfg=cfg,
+        tech=tech,
+        N=N,
+        base_comp=comp_local,
+        downstream_solver_params=sp,
+        threshold_settings=threshold_settings,
+        u0_grid=u0_grid,
+    )
+
+    out_tables = project_root / "results" / "tables"
+    out_figs = project_root / "results" / "figures" / "u0_sensitivity"
+    out_logs = project_root / "results" / "logs"
+    out_tables.mkdir(parents=True, exist_ok=True)
+    out_figs.mkdir(parents=True, exist_ok=True)
+    out_logs.mkdir(parents=True, exist_ok=True)
+
+    results_csv_path = out_tables / "u0_sensitivity_results.csv"
+    summary_json_path = out_tables / "u0_sensitivity_summary.json"
+    diagnostics_json_path = out_tables / "u0_sensitivity_diagnostics.json"
+
+    records = sensitivity_results_to_records(sweep.rows)
+    if len(records) == 0:
+        raise RuntimeError("u0 sensitivity produced no rows.")
+
+    with results_csv_path.open("w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=list(records[0].keys()))
+        writer.writeheader()
+        writer.writerows(records)
+
+    df = load_competition_results_csv(results_csv_path)
+
+    summary = _build_u0_summary(df)
+    summary["M_used"] = float(market_size)
+    summary_json_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+
+    diagnostics = {
+        "experiment_name": "u0_sensitivity",
+        "varied_parameter": "u0",
+        "u0_grid": u0_grid,
+        "fixed_parameters": {
+            "M": float(market_size),
+            "tau": float(comp_local.tau),
+            "q_T": float(comp_local.q_T),
+            "m_T": float(comp_local.m_T),
+            "m_S": float(comp_local.m_S),
+        },
+        "runs": int(len(df)),
+        "successful_runs": int(df["success"].sum()),
+        "failed_runs": int((~df["success"]).sum()),
+        "interior_runs": int(df["interior_equilibrium"].sum()),
+        "boundary_or_degenerate_runs": int((~df["interior_equilibrium"]).sum()),
+        "notes": [
+            "Existing market-size threshold analysis was not modified.",
+            "u0 and tau sensitivities are implemented as separate workflows.",
+        ],
+    }
+    diagnostics_json_path.write_text(json.dumps(diagnostics, indent=2), encoding="utf-8")
+
+    plot_competition_sensitivity_p_star_vs_parameter(
+        df=df,
+        outdir=out_figs,
+        parameter_col="parameter_value",
+        stem="fig_u0_01_p_star_vs_u0",
+    )
+    plot_competition_sensitivity_teacher_payoff_vs_parameter(
+        df=df,
+        outdir=out_figs,
+        parameter_col="parameter_value",
+        stem="fig_u0_02_teacher_payoff_vs_u0",
+    )
+    plot_competition_sensitivity_student_payoff_vs_parameter(
+        df=df,
+        outdir=out_figs,
+        parameter_col="parameter_value",
+        stem="fig_u0_03_student_payoff_vs_u0",
+    )
+    plot_competition_sensitivity_d_star_vs_parameter(
+        df=df,
+        outdir=out_figs,
+        parameter_col="parameter_value",
+        stem="fig_u0_04_d_star_vs_u0",
+    )
+    plot_competition_sensitivity_interior_indicator_vs_parameter(
+        df=df,
+        outdir=out_figs,
+        parameter_col="parameter_value",
+        stem="fig_u0_05_interior_indicator_vs_u0",
+    )
+    plot_competition_sensitivity_downstream_shares_vs_parameter(
+        df=df,
+        outdir=out_figs,
+        parameter_col="parameter_value",
+        stem="fig_u0_06_downstream_shares_vs_u0",
+    )
+    plot_competition_sensitivity_downstream_prices_vs_parameter(
+        df=df,
+        outdir=out_figs,
+        parameter_col="parameter_value",
+        stem="fig_u0_07_downstream_prices_vs_u0",
+    )
+
+    u0_cfg = (
+        competition_cfg.get("competition", {})
+        .get("sensitivity_analysis", {})
+        .get("u0_sweep", {})
+    )
+    rep_values = _representative_u0_values(u0_grid, u0_cfg.get("price_domain_representative_values"))
+
+    price_domain_curves: list[tuple[float, object]] = []
+    for u0_val in rep_values:
+        comp_rep = replace(comp_local, u0=float(u0_val))
+        sim_rep, _sim_grids, _params = run_competition_grid_simulation(
+            cfg=cfg,
+            tech=tech,
+            N=N,
+            comp=comp_rep,
+            downstream_solver_params=sp,
+            p_grid_override=None,
+        )
+        df_rep = to_dataframe(sim_rep)
+        price_domain_curves.append((float(u0_val), df_rep))
+
+    plot_competition_teacher_profit_vs_p_multi_u0(
+        curves=price_domain_curves,
+        outdir=out_figs,
+        stem="fig_u0_price_teacher_vs_p_multi_u0",
+    )
+    plot_competition_student_profit_vs_p_multi_u0(
+        curves=price_domain_curves,
+        outdir=out_figs,
+        stem="fig_u0_price_student_vs_p_multi_u0",
+    )
+
+    run_log = {
+        "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "competition_config_path": str(competition_cfg_path),
+        "u0_grid": u0_grid,
+        "M_used": float(market_size),
+        "representative_u0_for_price_domain": rep_values,
+        "artifacts": {
+            "results_csv": str(results_csv_path),
+            "summary_json": str(summary_json_path),
+            "diagnostics_json": str(diagnostics_json_path),
+            "fig_dir": str(out_figs),
+        },
+    }
+
+    log_path = out_logs / "exp_09_competition_u0_sensitivity_run_log.json"
+    log_path.write_text(json.dumps(run_log, indent=2), encoding="utf-8")
+
+    print("Stage 5 u0 sensitivity completed.")
+    print("Saved:")
+    print(" -", results_csv_path)
+    print(" -", summary_json_path)
+    print(" -", diagnostics_json_path)
+    print("Figures:")
+    print(" -", out_figs)
+
+
+if __name__ == "__main__":
+    main()
