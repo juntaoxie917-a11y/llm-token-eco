@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import sys
 import time
 import csv
@@ -166,7 +167,8 @@ def main() -> None:
         u0_grid=u0_grid,
     )
 
-    out_tables = project_root / "results" / "tables"
+    out_tables_root = project_root / "results" / "tables"
+    out_tables = out_tables_root / "u0_sensitivity"
     out_figs = project_root / "results" / "figures" / "u0_sensitivity"
     out_logs = project_root / "results" / "logs"
     out_tables.mkdir(parents=True, exist_ok=True)
@@ -176,6 +178,10 @@ def main() -> None:
     results_csv_path = out_tables / "u0_sensitivity_results.csv"
     summary_json_path = out_tables / "u0_sensitivity_summary.json"
     diagnostics_json_path = out_tables / "u0_sensitivity_diagnostics.json"
+
+    legacy_results_csv_path = out_tables_root / "u0_sensitivity_results.csv"
+    legacy_summary_json_path = out_tables_root / "u0_sensitivity_summary.json"
+    legacy_diagnostics_json_path = out_tables_root / "u0_sensitivity_diagnostics.json"
 
     records = sensitivity_results_to_records(sweep.rows)
     if len(records) == 0:
@@ -214,6 +220,11 @@ def main() -> None:
         ],
     }
     diagnostics_json_path.write_text(json.dumps(diagnostics, indent=2), encoding="utf-8")
+
+    # Keep top-level filenames for backward compatibility with existing checks.
+    shutil.copyfile(results_csv_path, legacy_results_csv_path)
+    shutil.copyfile(summary_json_path, legacy_summary_json_path)
+    shutil.copyfile(diagnostics_json_path, legacy_diagnostics_json_path)
 
     plot_competition_sensitivity_p_star_vs_parameter(
         df=df,
@@ -300,6 +311,9 @@ def main() -> None:
             "results_csv": str(results_csv_path),
             "summary_json": str(summary_json_path),
             "diagnostics_json": str(diagnostics_json_path),
+            "legacy_results_csv": str(legacy_results_csv_path),
+            "legacy_summary_json": str(legacy_summary_json_path),
+            "legacy_diagnostics_json": str(legacy_diagnostics_json_path),
             "fig_dir": str(out_figs),
         },
     }

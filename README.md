@@ -67,6 +67,19 @@ Competition threshold analysis (market-size critical threshold):
 python experiments/exp_08_competition_market_threshold.py
 ```
 
+Competition sensitivity analysis (`u0` and `tau`, separate 1D workflows):
+
+```bash
+python experiments/exp_09_competition_u0_sensitivity.py
+python experiments/exp_10_competition_tau_sensitivity.py
+```
+
+Competition Stage 9 regression safeguards:
+
+```bash
+python experiments/exp_11_competition_stage9_regression_safeguards.py
+```
+
 Threshold settings are configured in `config/competition.yaml` under:
 
 - `competition.threshold_analysis.market_size_min`
@@ -110,3 +123,38 @@ For threshold-analysis runs (`exp_08`), key files include:
 - `results/figures/threshold/fig_comp_threshold_06_distances_vs_market_size.*`
 - `results/figures/threshold/fig_comp_threshold_07_min_share_vs_market_size.*`
 - `results/logs/exp_08_competition_threshold_run_log.json`
+
+For sensitivity runs (`exp_09`, `exp_10`), key files include:
+
+- `results/tables/u0_sensitivity/u0_sensitivity_results.csv`
+- `results/tables/u0_sensitivity/u0_sensitivity_summary.json`
+- `results/tables/u0_sensitivity/u0_sensitivity_diagnostics.json`
+- `results/tables/tau_sensitivity/tau_sensitivity_results.csv`
+- `results/tables/tau_sensitivity/tau_sensitivity_summary.json`
+- `results/tables/tau_sensitivity/tau_sensitivity_diagnostics.json`
+- `results/figures/u0_sensitivity/fig_u0_*.{pdf,svg,png}`
+- `results/figures/tau_sensitivity/fig_tau_*.{pdf,svg,png}`
+
+Backward-compatible table mirrors are also kept at top level:
+
+- `results/tables/u0_sensitivity_results.csv`
+- `results/tables/u0_sensitivity_summary.json`
+- `results/tables/u0_sensitivity_diagnostics.json`
+- `results/tables/tau_sensitivity_results.csv`
+- `results/tables/tau_sensitivity_summary.json`
+- `results/tables/tau_sensitivity_diagnostics.json`
+
+For Stage 9 safeguards (`exp_11`), key files include:
+
+- `results/tables/competition_stage9_regression_report.json`
+- `results/tables/competition_threshold_stage9_smoke_sweep_results.csv`
+- `results/tables/competition_threshold_stage9_smoke_summary.json`
+- `results/tables/competition_threshold_stage9_smoke_refinement_history.csv`
+- `results/logs/exp_11_competition_stage9_regression_run_log.json`
+
+## Sensitivity Notes
+
+- Sensitivity classification intentionally reuses `src/competition_threshold.py` logic so results are comparable with market-size threshold analysis.
+- `u0` and `tau` are implemented as separate workflows by design.
+- A full implementation summary is documented in:
+  - `docs/competition_sensitivity_implementation_summary.md`
