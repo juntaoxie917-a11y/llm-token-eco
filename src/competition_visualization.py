@@ -59,7 +59,7 @@ def plot_competition_d_star_vs_p(*, df: pd.DataFrame, outdir: Path, stem: str = 
 
     ax.plot(df["p"], df["D_star"], label=r"$D^*(p)$")
     ax.set_xlabel(r"Upstream token price $p$")
-    ax.set_ylabel(r"Student best-response tokens $D^*$")
+    ax.set_ylabel(r"Student best-response token demand $D^*$")
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
 
@@ -80,12 +80,12 @@ def plot_competition_teacher_profit_vs_p(
     y = df["pi_teacher_total"]
     idx = int(y.idxmax())
 
-    ax.plot(p, y, label=r"Teacher total profit")
+    ax.plot(p, y, label=r"Teacher total payoff")
     ax.axvline(float(df.loc[idx, "p"]), linestyle="--", linewidth=1.0, label=fr"$p^*={df.loc[idx, 'p']:.3g}$")
     ax.scatter([df.loc[idx, "p"]], [df.loc[idx, "pi_teacher_total"]], zorder=5)
 
     ax.set_xlabel(r"Upstream token price $p$")
-    ax.set_ylabel(r"Teacher total profit")
+    ax.set_ylabel(r"Teacher total payoff")
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
 
@@ -108,12 +108,12 @@ def plot_competition_student_profit_vs_p(
     p_nash = float(df.loc[idx_nash, "p"])
     y_nash = float(df.loc[idx_nash, "pi_student_total"])
 
-    ax.plot(p, y, label=r"Student total profit")
+    ax.plot(p, y, label=r"Student total payoff")
     ax.axvline(p_nash, linestyle="--", linewidth=1.0, label=fr"$p^*={p_nash:.3g}$")
     ax.scatter([p_nash], [y_nash], zorder=5)
 
     ax.set_xlabel(r"Upstream token price $p$")
-    ax.set_ylabel(r"Student total profit")
+    ax.set_ylabel(r"Student total payoff")
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
 
@@ -275,7 +275,7 @@ def plot_competition_threshold_d_star_vs_market_size(
     _annotate_critical_m(ax, critical_m=critical_m, critical_interval=critical_interval)
 
     ax.set_xlabel("Downstream market size")
-    ax.set_ylabel("Student equilibrium training demand")
+    ax.set_ylabel("Student equilibrium token demand")
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
 
@@ -381,7 +381,7 @@ def plot_competition_threshold_min_share_vs_market_size(
     _annotate_critical_m(ax, critical_m=critical_m, critical_interval=critical_interval)
 
     ax.set_xlabel("Downstream market size")
-    ax.set_ylabel("Minimum of (s_T, s_S, s_0)")
+    ax.set_ylabel("Minimum of ($s_T, s_S, s_0$)")
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
 
@@ -454,6 +454,7 @@ def plot_competition_sensitivity_p_star_vs_parameter(
     df: pd.DataFrame,
     outdir: Path,
     parameter_col: str,
+    x_label: str,
     stem: str,
 ) -> None:
     data = df.sort_values(by=parameter_col).copy()
@@ -461,7 +462,7 @@ def plot_competition_sensitivity_p_star_vs_parameter(
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.plot(data[parameter_col], data["p_star"], marker="o", label=r"$p^*$")
-    ax.set_xlabel(parameter_col)
+    ax.set_xlabel(x_label)
     ax.set_ylabel(r"Teacher optimal upstream price $p^*$")
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
@@ -474,6 +475,7 @@ def plot_competition_sensitivity_d_star_vs_parameter(
     df: pd.DataFrame,
     outdir: Path,
     parameter_col: str,
+    x_label: str,
     stem: str,
 ) -> None:
     data = df.sort_values(by=parameter_col).copy()
@@ -481,8 +483,8 @@ def plot_competition_sensitivity_d_star_vs_parameter(
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.plot(data[parameter_col], data["D_star_at_p_star"], marker="o", label=r"$D^*$")
-    ax.set_xlabel(parameter_col)
-    ax.set_ylabel(r"Student equilibrium training demand $D^*$")
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(r"Student equilibrium token demand $D^*$")
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
     _save_figure(fig, outdir / stem)
@@ -494,6 +496,7 @@ def plot_competition_sensitivity_teacher_payoff_vs_parameter(
     df: pd.DataFrame,
     outdir: Path,
     parameter_col: str,
+    x_label: str,
     stem: str,
 ) -> None:
     data = df.sort_values(by=parameter_col).copy()
@@ -501,7 +504,7 @@ def plot_competition_sensitivity_teacher_payoff_vs_parameter(
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.plot(data[parameter_col], data["pi_teacher_star"], marker="o", label="Teacher total payoff")
-    ax.set_xlabel(parameter_col)
+    ax.set_xlabel(x_label)
     ax.set_ylabel("Teacher total payoff at optimum")
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
@@ -514,6 +517,7 @@ def plot_competition_sensitivity_student_payoff_vs_parameter(
     df: pd.DataFrame,
     outdir: Path,
     parameter_col: str,
+    x_label: str,
     stem: str,
 ) -> None:
     data = df.sort_values(by=parameter_col).copy()
@@ -521,7 +525,7 @@ def plot_competition_sensitivity_student_payoff_vs_parameter(
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.plot(data[parameter_col], data["pi_student_star"], marker="o", label="Student total payoff")
-    ax.set_xlabel(parameter_col)
+    ax.set_xlabel(x_label)
     ax.set_ylabel("Student total payoff at teacher optimum")
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
@@ -534,6 +538,7 @@ def plot_competition_sensitivity_interior_indicator_vs_parameter(
     df: pd.DataFrame,
     outdir: Path,
     parameter_col: str,
+    x_label: str,
     strict_col: str = "interior_equilibrium",
     stem: str,
 ) -> None:
@@ -544,7 +549,7 @@ def plot_competition_sensitivity_interior_indicator_vs_parameter(
     ax = fig.add_subplot(111)
     ax.step(data[parameter_col], y, where="post", label="Strict interior (1=yes)")
     ax.scatter(data[parameter_col], y, s=20)
-    ax.set_xlabel(parameter_col)
+    ax.set_xlabel(x_label)
     ax.set_ylabel("Strict interior classification")
     ax.set_ylim(-0.05, 1.05)
     ax.set_yticks([0, 1])
@@ -559,6 +564,7 @@ def plot_competition_sensitivity_downstream_prices_vs_parameter(
     df: pd.DataFrame,
     outdir: Path,
     parameter_col: str,
+    x_label: str,
     stem: str,
 ) -> None:
     data = df.sort_values(by=parameter_col).copy()
@@ -567,7 +573,7 @@ def plot_competition_sensitivity_downstream_prices_vs_parameter(
     ax = fig.add_subplot(111)
     ax.plot(data[parameter_col], data["P_T_star"], marker="o", label=r"$P_T^*$")
     ax.plot(data[parameter_col], data["P_S_star"], marker="o", label=r"$P_S^*$")
-    ax.set_xlabel(parameter_col)
+    ax.set_xlabel(x_label)
     ax.set_ylabel("Downstream equilibrium prices")
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
@@ -580,6 +586,7 @@ def plot_competition_sensitivity_downstream_shares_vs_parameter(
     df: pd.DataFrame,
     outdir: Path,
     parameter_col: str,
+    x_label: str,
     stem: str,
 ) -> None:
     data = df.sort_values(by=parameter_col).copy()
@@ -589,7 +596,7 @@ def plot_competition_sensitivity_downstream_shares_vs_parameter(
     ax.plot(data[parameter_col], data["s_T_star"], marker="o", label=r"$s_T^*$")
     ax.plot(data[parameter_col], data["s_S_star"], marker="o", label=r"$s_S^*$")
     ax.plot(data[parameter_col], data["s_0_star"], marker="o", label=r"$s_0^*$")
-    ax.set_xlabel(parameter_col)
+    ax.set_xlabel(x_label)
     ax.set_ylabel("Downstream market shares")
     ax.set_ylim(-0.02, 1.02)
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
@@ -614,7 +621,7 @@ def plot_competition_teacher_profit_vs_p_multi_u0(
     ax.set_xlabel(r"Upstream token price $p$")
     ax.set_ylabel(r"Teacher total payoff")
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
-    ax.legend(ncols=2)
+    ax.legend(ncols=2, loc="upper left", bbox_to_anchor=(1.02, 1.0), borderaxespad=0.0)
 
     _save_figure(fig, outdir / stem)
     plt.close(fig)
@@ -636,7 +643,7 @@ def plot_competition_student_profit_vs_p_multi_u0(
     ax.set_xlabel(r"Upstream token price $p$")
     ax.set_ylabel(r"Student total payoff")
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
-    ax.legend(ncols=2)
+    ax.legend(ncols=2, loc="upper left", bbox_to_anchor=(1.02, 1.0), borderaxespad=0.0)
 
     _save_figure(fig, outdir / stem)
     plt.close(fig)
@@ -658,7 +665,7 @@ def plot_competition_teacher_profit_vs_p_multi_tau(
     ax.set_xlabel(r"Upstream token price $p$")
     ax.set_ylabel(r"Teacher total payoff")
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
-    ax.legend(ncols=2)
+    ax.legend(ncols=2, loc="upper left", bbox_to_anchor=(1.02, 1.0), borderaxespad=0.0)
 
     _save_figure(fig, outdir / stem)
     plt.close(fig)
@@ -680,7 +687,7 @@ def plot_competition_student_profit_vs_p_multi_tau(
     ax.set_xlabel(r"Upstream token price $p$")
     ax.set_ylabel(r"Student total payoff")
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
-    ax.legend(ncols=2)
+    ax.legend(ncols=2, loc="upper left", bbox_to_anchor=(1.02, 1.0), borderaxespad=0.0)
 
     _save_figure(fig, outdir / stem)
     plt.close(fig)

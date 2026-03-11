@@ -259,42 +259,49 @@ def main() -> None:
         df=df,
         outdir=out_figs,
         parameter_col="parameter_value",
+        x_label=r"price sensitivity $\tau$",
         stem="fig_tau_01_p_star_vs_tau",
     )
     plot_competition_sensitivity_teacher_payoff_vs_parameter(
         df=df,
         outdir=out_figs,
         parameter_col="parameter_value",
+        x_label=r"price sensitivity $\tau$",
         stem="fig_tau_02_teacher_payoff_vs_tau",
     )
     plot_competition_sensitivity_student_payoff_vs_parameter(
         df=df,
         outdir=out_figs,
         parameter_col="parameter_value",
+        x_label=r"price sensitivity $\tau$",
         stem="fig_tau_03_student_payoff_vs_tau",
     )
     plot_competition_sensitivity_d_star_vs_parameter(
         df=df,
         outdir=out_figs,
         parameter_col="parameter_value",
+        x_label=r"price sensitivity $\tau$",
         stem="fig_tau_04_d_star_vs_tau",
     )
     plot_competition_sensitivity_interior_indicator_vs_parameter(
         df=df,
         outdir=out_figs,
         parameter_col="parameter_value",
+        x_label=r"price sensitivity $\tau$",
         stem="fig_tau_05_interior_indicator_vs_tau",
     )
     plot_competition_sensitivity_downstream_prices_vs_parameter(
         df=df,
         outdir=out_figs,
         parameter_col="parameter_value",
+        x_label=r"price sensitivity $\tau$",
         stem="fig_tau_06_downstream_prices_vs_tau",
     )
     plot_competition_sensitivity_downstream_shares_vs_parameter(
         df=df,
         outdir=out_figs,
         parameter_col="parameter_value",
+        x_label=r"price sensitivity $\tau$",
         stem="fig_tau_07_downstream_shares_vs_tau",
     )
 
