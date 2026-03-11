@@ -4,7 +4,7 @@ run:
 
 competition:
   # Stage-5 downstream market scale and marginal costs
-  M: 10000.0 # 1000000.0
+  M: 10000.0
   m_T: 2.0
   m_S: 2.0
 
