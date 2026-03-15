@@ -1,0 +1,47 @@
+seed: 42
+n_samples: 256          # Sobol 基础样本数（最终点数会放大）
+n_repeats: 3            # 每个样本重复次数
+bootstrap_rounds: 1000
+
+# 简化 scaling law: L = A*N^-alpha + B*D^-beta / q_eff + E
+model:
+  A: 120.0
+  B: 80.0
+  E: 1.5
+  gamma: 1.0
+  compute_coeff: 6.0    # C ≈ coeff * N * D
+  total_compute: 2.0e20
+
+formula_sensitivity:
+  baseline:
+    N_s: 1.0e9
+    D: 1.0e11
+  N_scan:
+    min: 1.0e7
+    max: 1.0e11
+    points: 120
+  D_scan:
+    min: 1.0e9
+    max: 1.0e12
+    points: 120
+
+search:
+  N_min: 1.0e7
+  N_max: 3.0e10
+  grid_size: 180
+
+# q_eff = quality_coef * (1 + mix_gain*(token_mix - 0.5))
+token_mix:
+  mix_gain: 0.8
+
+variables:
+  - name: alpha
+    bounds: [0.15, 0.45]
+  - name: beta
+    bounds: [0.15, 0.45]
+  - name: quality_coef
+    bounds: [0.8, 1.2]
+  - name: token_mix
+    bounds: [0.1, 0.9]
+
+output_dir: results
