@@ -102,8 +102,16 @@ def run_competition_grid_simulation(
     p_grid: Iterable[float]
     if p_grid_override is None:
         p_grid = sim_grids.p_grid
+        effective_sim_grids = sim_grids
     else:
-        p_grid = [float(x) for x in p_grid_override]
+        p_grid_arr = np.asarray([float(x) for x in p_grid_override], dtype=float)
+        if p_grid_arr.size == 0:
+            raise ValueError("p_grid_override must contain at least one price point.")
+        p_grid = p_grid_arr
+        effective_sim_grids = SimulationGrids(
+            p_grid=p_grid_arr,
+            D_plot_grid=sim_grids.D_plot_grid,
+        )
 
     rows: List[CompetitionSimulationRow] = []
 
@@ -201,7 +209,7 @@ def run_competition_grid_simulation(
         down_success_rate=float(down_success_count / total),
         boundary_share=float(boundary_count / total),
     )
-    return result, sim_grids, (econ, grids, solver)
+    return result, effective_sim_grids, (econ, grids, solver)
 
 
 def to_dataframe(sim: CompetitionSimulationResult):

@@ -691,3 +691,47 @@ def plot_competition_student_profit_vs_p_multi_tau(
 
     _save_figure(fig, outdir / stem)
     plt.close(fig)
+
+
+def plot_competition_teacher_profit_vs_p_multi_market_size(
+    *,
+    curves: Sequence[tuple[float, pd.DataFrame]],
+    outdir: Path,
+    stem: str = "fig_comp_threshold_09_teacher_profit_vs_p_multi_market_size",
+) -> None:
+    """Overlay teacher payoff-vs-p curves for multiple market-size values."""
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    for market_size, df in sorted(curves, key=lambda x: float(x[0])):
+        ax.plot(df["p"], df["pi_teacher_total"], label=fr"$M={market_size:.3g}$")
+
+    ax.set_xlabel(r"Upstream token price $p$")
+    ax.set_ylabel(r"Teacher total payoff")
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend(ncols=2, loc="upper left", bbox_to_anchor=(1.02, 1.0), borderaxespad=0.0)
+
+    _save_figure(fig, outdir / stem)
+    plt.close(fig)
+
+
+def plot_competition_student_profit_vs_p_multi_market_size(
+    *,
+    curves: Sequence[tuple[float, pd.DataFrame]],
+    outdir: Path,
+    stem: str = "fig_comp_threshold_10_student_profit_vs_p_multi_market_size",
+) -> None:
+    """Overlay student payoff-vs-p curves for multiple market-size values."""
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    for market_size, df in sorted(curves, key=lambda x: float(x[0])):
+        ax.plot(df["p"], df["pi_student_total"], label=fr"$M={market_size:.3g}$")
+
+    ax.set_xlabel(r"Upstream token price $p$")
+    ax.set_ylabel(r"Student total payoff")
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
+    ax.legend(ncols=2, loc="upper left", bbox_to_anchor=(1.02, 1.0), borderaxespad=0.0)
+
+    _save_figure(fig, outdir / stem)
+    plt.close(fig)

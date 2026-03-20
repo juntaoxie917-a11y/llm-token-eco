@@ -2,10 +2,8 @@ __pycache__/
 
 .DS_Store
 
-*.pdf
-*.png
-*.svg
-*.json
-*.csv
+figures/
+logs/
+tables/
 
 .idea/

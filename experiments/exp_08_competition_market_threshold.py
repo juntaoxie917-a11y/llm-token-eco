@@ -4,6 +4,7 @@ import json
 import os
 import sys
 import time
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
@@ -11,6 +12,7 @@ import numpy as np
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from src.competition_downstream_solver import build_downstream_solver_params_from_config
+from src.competition_simulation import run_competition_grid_simulation, to_dataframe
 from src.competition_static import build_competition_params_from_config
 from src.competition_threshold import (
     MarketSizeEvaluationResult,
@@ -22,7 +24,11 @@ from src.competition_threshold import (
     save_threshold_outputs,
     sweep_results_to_dataframe,
 )
-from src.competition_visualization import plot_competition_threshold_suite
+from src.competition_visualization import (
+    plot_competition_student_profit_vs_p_multi_market_size,
+    plot_competition_teacher_profit_vs_p_multi_market_size,
+    plot_competition_threshold_suite,
+)
 from src.config_loader import load_with_base_config, load_yaml
 from src.scaling_laws import build_tierA_from_config
 
@@ -63,6 +69,18 @@ def _find_transition_x_for_step_plot(rows: list[MarketSizeEvaluationResult]) -> 
         if flags[i] and (not flags[i + 1]):
             return float(rows_sorted[i + 1].market_size)
     return None
+
+
+def _representative_market_sizes_for_price_scan(
+    *,
+    market_size_grid: list[float],
+    requested: list[float] | None,
+) -> list[float]:
+    if requested:
+        values = sorted({float(x) for x in requested})
+        return [v for v in values if v > 0]
+
+    return sorted({float(x) for x in market_size_grid if float(x) > 0})
 
 
 def main() -> None:
@@ -200,6 +218,35 @@ def main() -> None:
         critical_interval=critical_interval,
     )
 
+    rep_market_sizes = _representative_market_sizes_for_price_scan(
+        market_size_grid=market_size_grid,
+        requested=th_cfg.get("price_domain_representative_market_sizes"),
+    )
+    price_domain_curves: list[tuple[float, object]] = []
+    for market_size in rep_market_sizes:
+        comp_rep = replace(comp, M=float(market_size))
+        sim_rep, _sim_grids, _params = run_competition_grid_simulation(
+            cfg=cfg,
+            tech=tech,
+            N=N,
+            comp=comp_rep,
+            downstream_solver_params=sp,
+            p_grid_override=None,
+        )
+        df_rep = to_dataframe(sim_rep)
+        price_domain_curves.append((float(market_size), df_rep))
+
+    plot_competition_teacher_profit_vs_p_multi_market_size(
+        curves=price_domain_curves,
+        outdir=out_figs,
+        stem="fig_comp_threshold_09_teacher_profit_vs_p_multi_market_size",
+    )
+    plot_competition_student_profit_vs_p_multi_market_size(
+        curves=price_domain_curves,
+        outdir=out_figs,
+        stem="fig_comp_threshold_10_student_profit_vs_p_multi_market_size",
+    )
+
     summary = build_threshold_summary(sweep=sweep, refinement=refinement)
     run_log = {
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -211,6 +258,7 @@ def main() -> None:
             "summary_json_path": artifacts.summary_json_path,
             "refinement_history_csv_path": artifacts.refinement_history_csv_path,
             "fig_dir": str(out_figs),
+            "representative_market_sizes_for_price_domain": rep_market_sizes,
         },
     }
     with open(out_logs / "exp_08_competition_threshold_run_log.json", "w", encoding="utf-8") as f:
