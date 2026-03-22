@@ -27,7 +27,7 @@ class CompetitionParams:
     m_T: float
     m_S: float
     u0: float
-    tau: float
+    tau: float  # Downstream price sensitivity in utility: q - tau * P
     q_T: float
     quality_map: QualityMapMode
     quality_scale: float
@@ -134,18 +134,20 @@ def downstream_utilities(
     u0: float,
     tau: float,
 ) -> Tuple[float, float, float]:
-    """Compute logit indices (scaled utilities) for teacher/student/outside.
+    """Compute logit utility indices for teacher/student/outside.
 
     Index convention:
-      v_T = (q_T - P_T) / tau
-      v_S = (q_S - P_S) / tau
-      v_0 = u0 / tau
+      v_T = q_T - tau * P_T
+      v_S = q_S - tau * P_S
+      v_0 = u0
+
+    Here `tau` is price sensitivity, not a softmax temperature.
     """
     if tau <= 0:
         raise ValueError("tau must be > 0.")
-    v_T = (q_T - P_T) / tau
-    v_S = (q_S - P_S) / tau
-    v_0 = u0 / tau
+    v_T = q_T - tau * P_T
+    v_S = q_S - tau * P_S
+    v_0 = u0
     return float(v_T), float(v_S), float(v_0)
 
 

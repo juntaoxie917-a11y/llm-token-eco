@@ -201,6 +201,7 @@ def main() -> None:
     diagnostics = {
         "experiment_name": "u0_sensitivity",
         "varied_parameter": "u0",
+        "tau_semantics": "competition uses price sensitivity in utility q - tau * P",
         "u0_grid": u0_grid,
         "fixed_parameters": {
             "M": float(market_size),
@@ -311,6 +312,7 @@ def main() -> None:
     run_log = {
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "competition_config_path": str(competition_cfg_path),
+        "tau_semantics": "competition uses price sensitivity in utility q - tau * P",
         "u0_grid": u0_grid,
         "M_used": float(market_size),
         "representative_u0_for_price_domain": rep_values,

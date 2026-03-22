@@ -205,6 +205,7 @@ def main() -> None:
     legacy_strict = _legacy_strict_from_row(eval_row, threshold_settings)
 
     # Stage 9 check #4: running u0/tau scripts must not overwrite old M outputs.
+    # Competition tau semantics: price sensitivity in q - tau * P (not temperature).
     protected_m_outputs = [
         project_root / "results" / "tables" / "competition_threshold_sweep_results.csv",
         project_root / "results" / "tables" / "competition_threshold_summary.json",
@@ -228,6 +229,7 @@ def main() -> None:
     report = {
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "stage": "stage_9_regression_safeguards",
+        "tau_semantics": "competition uses price sensitivity in utility q - tau * P",
         "checks": {
             "m_smoke_run": {
                 "passed": True,
@@ -269,6 +271,7 @@ def main() -> None:
         "timestamp_utc": report["timestamp_utc"],
         "report_path": str(report_path),
         "all_passed": report["all_passed"],
+        "tau_semantics": report["tau_semantics"],
     }
     run_log_path.write_text(json.dumps(run_log, indent=2), encoding="utf-8")
 

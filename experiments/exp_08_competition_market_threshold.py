@@ -251,6 +251,7 @@ def main() -> None:
     run_log = {
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "competition_config_path": str(competition_cfg_path),
+        "tau_semantics": "competition uses price sensitivity in utility q - tau * P",
         "threshold_analysis_config": th_cfg,
         "summary": summary,
         "artifacts": {

@@ -8,7 +8,7 @@ competition:
   m_T: 2.0
   m_S: 2.0
 
-  # Logit outside utility and temperature
+  # Logit outside utility and price sensitivity in utility q - tau * P
   u0: 0.0
   tau: 1.0
 
@@ -76,6 +76,7 @@ competition:
 
     tau_sweep:
       enabled: false
+      # Competition tau is price sensitivity (not baseline soft-outside temperature).
       # tau must stay strictly positive.
       grid: [0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0]
       # min: 0.2

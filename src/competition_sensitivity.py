@@ -246,7 +246,10 @@ def run_tau_sensitivity(
     use_student_cache: bool = True,
     student_cache_precision: int = 8,
 ) -> CompetitionSensitivitySweepResult:
-    """Run 1D sensitivity sweep over logit price sensitivity `tau`."""
+    """Run 1D sensitivity sweep over competition logit price sensitivity `tau`.
+
+    Here tau is the coefficient in utility q - tau * P (not a temperature).
+    """
     return _run_single_parameter_sensitivity(
         cfg=cfg,
         tech=tech,

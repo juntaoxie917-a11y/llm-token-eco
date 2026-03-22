@@ -425,6 +425,7 @@ def main() -> None:
     payload = {
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "competition_config_path": str(competition_cfg_path),
+        "tau_semantics": "competition uses price sensitivity in utility q - tau * P",
         "p_min": p_min,
         "p_points": p_points,
         "p_max_grid": p_max_grid,
@@ -442,6 +443,7 @@ def main() -> None:
     run_log = {
         "timestamp_utc": payload["timestamp_utc"],
         "experiment": "exp_12_competition_unconstrained_like_stability",
+        "tau_semantics": payload["tau_semantics"],
         "artifacts": {
             "summary_csv": str(summary_csv_path),
             "summary_json": str(summary_json_path),

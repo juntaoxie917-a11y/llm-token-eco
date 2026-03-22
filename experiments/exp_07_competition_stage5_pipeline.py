@@ -79,6 +79,7 @@ def main() -> None:
     share_sum = df["s_T_down_star"] + df["s_S_down_star"] + df["s_0_down_star"]
     diagnostics = {
         "mode": "competition_stage5",
+        "tau_semantics": "competition uses price sensitivity in utility q - tau * P",
         "grid_info": {
             "p_min": float(df["p"].min()),
             "p_max": float(df["p"].max()),
@@ -119,6 +120,7 @@ def main() -> None:
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "config_path": cfg_path,
         "competition_config_path": competition_cfg_path,
+        "tau_semantics": "competition uses price sensitivity in utility q - tau * P",
         "competition_params": comp.__dict__,
         "downstream_solver_params": sp.__dict__,
         "summary": summary,

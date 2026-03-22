@@ -245,7 +245,7 @@ def main() -> None:
         "notes": [
             "Existing market-size threshold analysis was not modified.",
             "u0 and tau sensitivities are implemented as separate workflows.",
-            "Small-tau numerical instability is preserved and explicitly reported, not clipped away.",
+            "Competition tau denotes price sensitivity in utility q - tau * P.",
         ],
     }
     diagnostics_json_path.write_text(json.dumps(diagnostics, indent=2), encoding="utf-8")

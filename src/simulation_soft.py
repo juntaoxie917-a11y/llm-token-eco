@@ -74,8 +74,9 @@ def run_soft_grid_simulation(
     sim_grids = build_simulation_grids(cfg)
 
     soft_cfg = cfg.get("soft_outside", {})
-    tau = float(soft_cfg.get("tau", 0.2))
-    if tau <= 0:
+    # Baseline soft-outside tau is a logistic temperature parameter.
+    tau_temp = float(soft_cfg.get("tau", 0.2))
+    if tau_temp <= 0:
         raise ValueError("soft_outside.tau must be > 0.")
 
     rows: List[SoftDemandRow] = []
@@ -95,7 +96,7 @@ def run_soft_grid_simulation(
         piS_star = float(br.pi_star)
 
         # soft participation probability
-        s = float(sigmoid(np.array([piS_star / tau]))[0])
+        s = float(sigmoid(np.array([piS_star / tau_temp]))[0])
         enter_probs.append(s)
 
         D_soft = s * D_star
