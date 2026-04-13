@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import csv
 import json
-import os
-import sys
 import time
 from collections import defaultdict
 from dataclasses import replace
@@ -12,7 +10,12 @@ from typing import Iterable, Sequence
 
 import numpy as np
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+try:
+    from experiments._bootstrap import ensure_project_root_on_path
+except ModuleNotFoundError:
+    from _bootstrap import ensure_project_root_on_path
+
+PROJECT_ROOT = ensure_project_root_on_path(__file__)
 
 from src.competition_downstream_solver import build_downstream_solver_params_from_config
 from src.competition_sensitivity import run_tau_sensitivity, run_u0_sensitivity
@@ -44,7 +47,7 @@ def _build_market_size_grid(th_cfg: dict) -> list[float]:
     return [float(x) for x in np.linspace(m_min, m_max, m_points)]
 
 
-def _resolve_market_size_for_u0(comp_cfg: dict, base_market_size: float) -> float:
+def _resolve_market_size_for_u0(comp_cfg: dict, base_market_size: float, project_root: Path) -> float:
     u0_cfg = comp_cfg.get("competition", {}).get("sensitivity_analysis", {}).get("u0_sweep", {})
 
     if "fixed_market_size" in u0_cfg:
@@ -56,12 +59,11 @@ def _resolve_market_size_for_u0(comp_cfg: dict, base_market_size: float) -> floa
     if bool(u0_cfg.get("use_threshold_midpoint", False)):
         summary_path = Path(
             u0_cfg.get(
-                "threshold_summary_path",
-                os.path.join("results", "tables", "competition_threshold_summary.json"),
+                "threshold_summary_path", str(Path("results") / "tables" / "competition_threshold_summary.json"),
             )
         )
         if not summary_path.is_absolute():
-            summary_path = Path.cwd() / summary_path
+            summary_path = project_root / summary_path
         if summary_path.exists():
             payload = json.loads(summary_path.read_text(encoding="utf-8"))
             midpoint = payload.get("refinement", {}).get("midpoint_estimate") if isinstance(payload, dict) else None
@@ -73,7 +75,7 @@ def _resolve_market_size_for_u0(comp_cfg: dict, base_market_size: float) -> floa
     return float(base_market_size)
 
 
-def _resolve_market_size_for_tau(comp_cfg: dict, base_market_size: float) -> float:
+def _resolve_market_size_for_tau(comp_cfg: dict, base_market_size: float, project_root: Path) -> float:
     tau_cfg = comp_cfg.get("competition", {}).get("sensitivity_analysis", {}).get("tau_sweep", {})
 
     if "fixed_market_size" in tau_cfg:
@@ -85,12 +87,11 @@ def _resolve_market_size_for_tau(comp_cfg: dict, base_market_size: float) -> flo
     if bool(tau_cfg.get("use_threshold_midpoint", False)):
         summary_path = Path(
             tau_cfg.get(
-                "threshold_summary_path",
-                os.path.join("results", "tables", "competition_threshold_summary.json"),
+                "threshold_summary_path", str(Path("results") / "tables" / "competition_threshold_summary.json"),
             )
         )
         if not summary_path.is_absolute():
-            summary_path = Path.cwd() / summary_path
+            summary_path = project_root / summary_path
         if summary_path.exists():
             payload = json.loads(summary_path.read_text(encoding="utf-8"))
             midpoint = payload.get("refinement", {}).get("midpoint_estimate") if isinstance(payload, dict) else None
@@ -136,7 +137,7 @@ def _label_from_flags(
 
 
 def main() -> None:
-    project_root = Path(__file__).resolve().parents[1]
+    project_root = PROJECT_ROOT
     competition_cfg_path = project_root / "config" / "competition.yaml"
 
     competition_cfg = load_yaml(competition_cfg_path)
@@ -171,8 +172,16 @@ def main() -> None:
     if any(t <= 0 for t in tau_grid):
         raise ValueError("tau sensitivity grid must satisfy tau > 0.")
 
-    market_size_for_u0 = _resolve_market_size_for_u0(competition_cfg, base_market_size=float(comp.M))
-    market_size_for_tau = _resolve_market_size_for_tau(competition_cfg, base_market_size=float(comp.M))
+    market_size_for_u0 = _resolve_market_size_for_u0(
+        competition_cfg,
+        base_market_size=float(comp.M),
+        project_root=project_root,
+    )
+    market_size_for_tau = _resolve_market_size_for_tau(
+        competition_cfg,
+        base_market_size=float(comp.M),
+        project_root=project_root,
+    )
 
     comp_u0 = replace(comp, M=float(market_size_for_u0))
     comp_tau = replace(comp, M=float(market_size_for_tau))

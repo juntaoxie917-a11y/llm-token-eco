@@ -5,15 +5,17 @@ Run from project root:
 """
 from __future__ import annotations
 
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from pathlib import Path
 import json
 import time
 import numpy as np
 import pandas as pd
+
+try:
+    from experiments._bootstrap import ensure_project_root_on_path
+except ModuleNotFoundError:
+    from _bootstrap import ensure_project_root_on_path
+
+PROJECT_ROOT = ensure_project_root_on_path(__file__)
 
 from src.config_loader import load_and_validate
 from src.scaling_laws import build_tierA_from_config
@@ -27,7 +29,7 @@ from src.visualization import (
 )
 
 def main() -> None:
-    project_root = Path(__file__).resolve().parents[1]
+    project_root = PROJECT_ROOT
     cfg_path = project_root / "config" / "base.yaml"
     cfg = load_and_validate(cfg_path)
 

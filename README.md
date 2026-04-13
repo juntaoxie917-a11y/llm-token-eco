@@ -48,6 +48,22 @@ Reference docs:
 
 ## How To Run
 
+Recommended (cross-platform, works the same on macOS and Windows):
+
+```bash
+python -m experiments.exp_01_hard_outside
+python -m experiments.exp_02_soft_outside
+python -m experiments.exp_07_competition_stage5_pipeline
+python -m experiments.exp_08_competition_market_threshold
+python -m experiments.exp_09_competition_u0_sensitivity
+python -m experiments.exp_10_competition_tau_sensitivity
+python -m experiments.exp_11_competition_stage9_regression_safeguards
+python -m experiments.exp_12_competition_unconstrained_like_stability
+python -m experiments.exp_13_competition_unconstrained_like_plots
+```
+
+Legacy direct-file invocation is also supported:
+
 Baseline:
 
 ```bash

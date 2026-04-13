@@ -1,13 +1,16 @@
 from __future__ import annotations
 
-import os
-import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+try:
+    from experiments._bootstrap import ensure_project_root_on_path
+except ModuleNotFoundError:
+    from _bootstrap import ensure_project_root_on_path
+
+PROJECT_ROOT = ensure_project_root_on_path(__file__)
 
 
 def _save_figure(fig: plt.Figure, outpath_base: Path, *, save_png: bool = True, dpi: int = 300) -> None:
@@ -124,7 +127,7 @@ def _plot_threshold_endpoint_vs_pmax(*, summary: pd.DataFrame, outdir: Path) -> 
 
 
 def main() -> None:
-    project_root = Path(__file__).resolve().parents[1]
+    project_root = PROJECT_ROOT
     out_figs = project_root / "results" / "figures" / "unconstrained_like"
     out_tables = project_root / "results" / "tables" / "unconstrained_like"
 

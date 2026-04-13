@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import json
-import os
 import shutil
-import sys
 import time
 import csv
 from dataclasses import replace
@@ -12,7 +10,12 @@ from typing import Iterable, List
 
 import numpy as np
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+try:
+    from experiments._bootstrap import ensure_project_root_on_path
+except ModuleNotFoundError:
+    from _bootstrap import ensure_project_root_on_path
+
+PROJECT_ROOT = ensure_project_root_on_path(__file__)
 
 from src.competition_downstream_solver import build_downstream_solver_params_from_config
 from src.competition_sensitivity import run_u0_sensitivity, sensitivity_results_to_records
@@ -89,7 +92,7 @@ def _build_u0_summary(df) -> dict:
     return summary
 
 
-def _resolve_market_size_for_u0(comp_cfg: dict, base_market_size: float) -> float:
+def _resolve_market_size_for_u0(comp_cfg: dict, base_market_size: float, project_root: Path) -> float:
     u0_cfg = (
         comp_cfg.get("competition", {})
         .get("sensitivity_analysis", {})
@@ -105,12 +108,11 @@ def _resolve_market_size_for_u0(comp_cfg: dict, base_market_size: float) -> floa
     if bool(u0_cfg.get("use_threshold_midpoint", False)):
         summary_path = Path(
             u0_cfg.get(
-                "threshold_summary_path",
-                os.path.join("results", "tables", "competition_threshold_summary.json"),
+                "threshold_summary_path", str(Path("results") / "tables" / "competition_threshold_summary.json"),
             )
         )
         if not summary_path.is_absolute():
-            summary_path = Path.cwd() / summary_path
+            summary_path = project_root / summary_path
         if summary_path.exists():
             payload = json.loads(summary_path.read_text(encoding="utf-8"))
             midpoint = (
@@ -136,7 +138,7 @@ def _representative_u0_values(grid: List[float], requested: List[float] | None) 
 
 
 def main() -> None:
-    project_root = Path(__file__).resolve().parents[1]
+    project_root = PROJECT_ROOT
     competition_cfg_path = project_root / "config" / "competition.yaml"
 
     competition_cfg = load_yaml(competition_cfg_path)
@@ -154,7 +156,11 @@ def main() -> None:
     if len(u0_grid) < 2:
         raise ValueError("u0 sensitivity requires at least two u0 points.")
 
-    market_size = _resolve_market_size_for_u0(competition_cfg, base_market_size=float(comp.M))
+    market_size = _resolve_market_size_for_u0(
+        competition_cfg,
+        base_market_size=float(comp.M),
+        project_root=project_root,
+    )
     comp_local = replace(comp, M=market_size)
 
     sweep = run_u0_sensitivity(

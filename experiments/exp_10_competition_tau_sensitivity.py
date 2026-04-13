@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import csv
 import json
-import os
 import shutil
-import sys
 import time
 from dataclasses import replace
 from pathlib import Path
@@ -12,7 +10,12 @@ from typing import Iterable, List
 
 import numpy as np
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+try:
+    from experiments._bootstrap import ensure_project_root_on_path
+except ModuleNotFoundError:
+    from _bootstrap import ensure_project_root_on_path
+
+PROJECT_ROOT = ensure_project_root_on_path(__file__)
 
 from src.competition_downstream_solver import build_downstream_solver_params_from_config
 from src.competition_sensitivity import run_tau_sensitivity, sensitivity_results_to_records
@@ -89,7 +92,7 @@ def _build_tau_summary(df) -> dict:
     return summary
 
 
-def _resolve_market_size_for_tau(comp_cfg: dict, base_market_size: float) -> float:
+def _resolve_market_size_for_tau(comp_cfg: dict, base_market_size: float, project_root: Path) -> float:
     tau_cfg = (
         comp_cfg.get("competition", {})
         .get("sensitivity_analysis", {})
@@ -105,12 +108,11 @@ def _resolve_market_size_for_tau(comp_cfg: dict, base_market_size: float) -> flo
     if bool(tau_cfg.get("use_threshold_midpoint", False)):
         summary_path = Path(
             tau_cfg.get(
-                "threshold_summary_path",
-                os.path.join("results", "tables", "competition_threshold_summary.json"),
+                "threshold_summary_path", str(Path("results") / "tables" / "competition_threshold_summary.json"),
             )
         )
         if not summary_path.is_absolute():
-            summary_path = Path.cwd() / summary_path
+            summary_path = project_root / summary_path
         if summary_path.exists():
             payload = json.loads(summary_path.read_text(encoding="utf-8"))
             midpoint = (
@@ -153,7 +155,7 @@ def _small_tau_instability_report(df, *, tau_instability_threshold: float) -> di
 
 
 def main() -> None:
-    project_root = Path(__file__).resolve().parents[1]
+    project_root = PROJECT_ROOT
     competition_cfg_path = project_root / "config" / "competition.yaml"
 
     competition_cfg = load_yaml(competition_cfg_path)
@@ -173,7 +175,11 @@ def main() -> None:
     if any(t <= 0 for t in tau_grid):
         raise ValueError("tau sensitivity grid must satisfy tau > 0.")
 
-    market_size = _resolve_market_size_for_tau(competition_cfg, base_market_size=float(comp.M))
+    market_size = _resolve_market_size_for_tau(
+        competition_cfg,
+        base_market_size=float(comp.M),
+        project_root=project_root,
+    )
     comp_local = replace(comp, M=market_size)
 
     sweep = run_tau_sensitivity(

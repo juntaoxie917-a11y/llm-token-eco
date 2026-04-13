@@ -3,14 +3,17 @@ from __future__ import annotations
 import hashlib
 import csv
 import json
-import os
-import sys
 import time
 from dataclasses import asdict
 from pathlib import Path
 from typing import Dict, List
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+try:
+    from experiments._bootstrap import ensure_project_root_on_path
+except ModuleNotFoundError:
+    from _bootstrap import ensure_project_root_on_path
+
+PROJECT_ROOT = ensure_project_root_on_path(__file__)
 
 from experiments.exp_09_competition_u0_sensitivity import main as run_u0_sensitivity_exp
 from experiments.exp_10_competition_tau_sensitivity import main as run_tau_sensitivity_exp
@@ -99,7 +102,7 @@ def _legacy_strict_from_row(row, threshold_settings) -> bool:
 
 
 def main() -> None:
-    project_root = Path(__file__).resolve().parents[1]
+    project_root = PROJECT_ROOT
     competition_cfg_path = project_root / "config" / "competition.yaml"
 
     competition_cfg = load_yaml(competition_cfg_path)

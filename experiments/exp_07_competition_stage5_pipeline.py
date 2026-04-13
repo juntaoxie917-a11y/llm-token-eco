@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import json
-import os
-import sys
 import time
 from pathlib import Path
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+try:
+    from experiments._bootstrap import ensure_project_root_on_path
+except ModuleNotFoundError:
+    from _bootstrap import ensure_project_root_on_path
+
+PROJECT_ROOT = ensure_project_root_on_path(__file__)
 
 from src.competition_downstream_solver import DownstreamSolverParams
 from src.competition_downstream_solver import build_downstream_solver_params_from_config
@@ -26,13 +29,13 @@ from src.scaling_laws import build_tierA_from_config
 
 
 def main() -> None:
-    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    competition_cfg_path = os.path.join(base_dir, "config", "competition.yaml")
+    base_dir = PROJECT_ROOT
+    competition_cfg_path = base_dir / "config" / "competition.yaml"
     competition_cfg = load_yaml(competition_cfg_path)
 
     cfg = load_with_base_config(competition_cfg_path, project_root=base_dir)
-    base_cfg_rel = str(competition_cfg.get("run", {}).get("base_config", "config/base.yaml"))
-    cfg_path = os.path.join(base_dir, base_cfg_rel)
+    base_cfg_rel = Path(str(competition_cfg.get("run", {}).get("base_config", "config/base.yaml")))
+    cfg_path = base_dir / base_cfg_rel
     tech = build_tierA_from_config(cfg)
     N = float(cfg["student"]["N0"])
 
@@ -49,17 +52,17 @@ def main() -> None:
         p_grid_override=None,
     )
 
-    out_tables = os.path.join(base_dir, "results", "tables")
-    out_figs = os.path.join(base_dir, "results", "figures")
-    out_logs = os.path.join(base_dir, "results", "logs")
-    os.makedirs(out_tables, exist_ok=True)
-    os.makedirs(out_figs, exist_ok=True)
-    os.makedirs(out_logs, exist_ok=True)
+    out_tables = base_dir / "results" / "tables"
+    out_figs = base_dir / "results" / "figures"
+    out_logs = base_dir / "results" / "logs"
+    out_tables.mkdir(parents=True, exist_ok=True)
+    out_figs.mkdir(parents=True, exist_ok=True)
+    out_logs.mkdir(parents=True, exist_ok=True)
 
-    csv_path = os.path.join(out_tables, "competition_stage5_grid_results.csv")
-    summary_path = os.path.join(out_tables, "competition_stage5_optimum.json")
-    diagnostics_path = os.path.join(out_tables, "competition_stage5_diagnostics.json")
-    log_path = os.path.join(out_logs, "exp_07_competition_stage5_run_log.json")
+    csv_path = out_tables / "competition_stage5_grid_results.csv"
+    summary_path = out_tables / "competition_stage5_optimum.json"
+    diagnostics_path = out_tables / "competition_stage5_diagnostics.json"
+    log_path = out_logs / "exp_07_competition_stage5_run_log.json"
 
     df = to_dataframe(sim)
     df.to_csv(csv_path, index=False)
@@ -99,9 +102,9 @@ def main() -> None:
         },
         "teacher_optimum": summary,
         "artifacts": {
-            "results_csv": csv_path,
-            "summary_json": summary_path,
-            "diagnostics_json": diagnostics_path,
+            "results_csv": str(csv_path),
+            "summary_json": str(summary_path),
+            "diagnostics_json": str(diagnostics_path),
         },
     }
     with open(diagnostics_path, "w", encoding="utf-8") as f:
@@ -109,7 +112,7 @@ def main() -> None:
 
     # Stage 5 requirement: plot from saved outputs where practical.
     df_saved = load_competition_results_csv(csv_path)
-    out_figs_path = Path(os.path.abspath(out_figs))
+    out_figs_path = out_figs
     plot_competition_d_star_vs_p(df=df_saved, outdir=out_figs_path)
     plot_competition_teacher_profit_vs_p(df=df_saved, outdir=out_figs_path)
     plot_competition_downstream_prices_vs_p(df=df_saved, outdir=out_figs_path)
@@ -118,8 +121,8 @@ def main() -> None:
 
     run_log = {
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "config_path": cfg_path,
-        "competition_config_path": competition_cfg_path,
+        "config_path": str(cfg_path),
+        "competition_config_path": str(competition_cfg_path),
         "tau_semantics": "competition uses price sensitivity in utility q - tau * P",
         "competition_params": comp.__dict__,
         "downstream_solver_params": sp.__dict__,
@@ -134,11 +137,11 @@ def main() -> None:
     print(" -", summary_path)
     print(" -", diagnostics_path)
     print("Figures:")
-    print(" -", os.path.join(out_figs, "fig_comp_01_dstar_vs_p.pdf"))
-    print(" -", os.path.join(out_figs, "fig_comp_02_teacher_profit_vs_p.pdf"))
-    print(" -", os.path.join(out_figs, "fig_comp_03_downstream_prices_vs_p.pdf"))
-    print(" -", os.path.join(out_figs, "fig_comp_04_downstream_shares_vs_p.pdf"))
-    print(" -", os.path.join(out_figs, "fig_comp_05_student_profit_vs_p.pdf"))
+    print(" -", out_figs / "fig_comp_01_dstar_vs_p.pdf")
+    print(" -", out_figs / "fig_comp_02_teacher_profit_vs_p.pdf")
+    print(" -", out_figs / "fig_comp_03_downstream_prices_vs_p.pdf")
+    print(" -", out_figs / "fig_comp_04_downstream_shares_vs_p.pdf")
+    print(" -", out_figs / "fig_comp_05_student_profit_vs_p.pdf")
 
 
 if __name__ == "__main__":

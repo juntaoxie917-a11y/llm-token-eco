@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 import json
 from pathlib import Path
+
+try:
+    from experiments._bootstrap import ensure_project_root_on_path
+except ModuleNotFoundError:
+    from _bootstrap import ensure_project_root_on_path
+
+PROJECT_ROOT = ensure_project_root_on_path(__file__)
 
 from src.config_loader import load_with_base_config
 from src.scaling_laws import build_tierA_from_config
@@ -21,7 +24,7 @@ from src.visualization import (
 
 
 def main():
-    base_dir = Path(__file__).resolve().parents[1]
+    base_dir = PROJECT_ROOT
     cfg_path = base_dir / "config" / "soft.yaml"
     cfg = load_with_base_config(cfg_path, project_root=base_dir)
 

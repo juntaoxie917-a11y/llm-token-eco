@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 import json
-import os
-import sys
 import time
 from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+try:
+    from experiments._bootstrap import ensure_project_root_on_path
+except ModuleNotFoundError:
+    from _bootstrap import ensure_project_root_on_path
+
+PROJECT_ROOT = ensure_project_root_on_path(__file__)
 
 from src.competition_downstream_solver import build_downstream_solver_params_from_config
 from src.competition_simulation import run_competition_grid_simulation, to_dataframe
@@ -84,7 +87,7 @@ def _representative_market_sizes_for_price_scan(
 
 
 def main() -> None:
-    project_root = Path(__file__).resolve().parents[1]
+    project_root = PROJECT_ROOT
     competition_cfg_path = project_root / "config" / "competition.yaml"
 
     competition_cfg = load_yaml(competition_cfg_path)
