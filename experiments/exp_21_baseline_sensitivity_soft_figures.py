@@ -20,7 +20,7 @@ except ModuleNotFoundError:
 
 PROJECT_ROOT = ensure_project_root_on_path(__file__)
 
-from src.config_loader import load_and_validate
+from src.config_loader import load_with_base_config
 from src.scaling_laws import build_tierA_from_config
 from src.simulation_soft import run_soft_grid_simulation
 
@@ -144,7 +144,7 @@ def main() -> None:
     args = parser.parse_args()
 
     root = PROJECT_ROOT
-    cfg = load_and_validate(root / "config" / "soft.yaml")
+    cfg = load_with_base_config(root / "config" / "soft.yaml", project_root=root)
 
     # Keep fine p-grid for smoother curves.
     cfg["grids"]["p_points"] = int(max(120, args.p_points))

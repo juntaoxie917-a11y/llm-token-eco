@@ -21,7 +21,7 @@ except ModuleNotFoundError:
 
 PROJECT_ROOT = ensure_project_root_on_path(__file__)
 
-from src.config_loader import load_and_validate
+from src.config_loader import load_and_validate, load_with_base_config
 from src.scaling_laws import build_tierA_from_config
 from src.simulation import run_baseline_grid_simulation
 from src.simulation_soft import run_soft_grid_simulation
@@ -418,7 +418,7 @@ def main() -> None:
 
     project_root = PROJECT_ROOT
     cfg_hard = load_and_validate(project_root / "config" / "base.yaml")
-    cfg_soft = load_and_validate(project_root / "config" / "soft.yaml")
+    cfg_soft = load_with_base_config(project_root / "config" / "soft.yaml", project_root=project_root)
 
     # Runtime control for sensitivity batches: keep price range unchanged, only adjust grid density.
     cfg_hard["grids"]["p_points"] = int(args.p_points)
