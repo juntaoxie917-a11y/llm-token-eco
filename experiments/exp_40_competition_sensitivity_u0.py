@@ -108,7 +108,7 @@ def _resolve_market_size_for_u0(comp_cfg: dict, base_market_size: float, project
     if bool(u0_cfg.get("use_threshold_midpoint", False)):
         summary_path = Path(
             u0_cfg.get(
-                "threshold_summary_path", str(Path("results") / "tables" / "competition_threshold_summary.json"),
+                "threshold_summary_path", str(Path("results") / "tables" / "competition_sensitivity_threshold_summary.json"),
             )
         )
         if not summary_path.is_absolute():

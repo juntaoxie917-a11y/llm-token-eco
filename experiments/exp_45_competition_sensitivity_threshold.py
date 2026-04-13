@@ -157,7 +157,7 @@ def main() -> None:
             )
 
     out_tables = project_root / "results" / "tables"
-    out_figs = project_root / "results" / "figures" / "competition" / "base" / "threshold"
+    out_figs = project_root / "results" / "figures" / "competition" / "sensitivity" / "threshold"
     out_logs = project_root / "results" / "logs"
     out_tables.mkdir(parents=True, exist_ok=True)
     out_figs.mkdir(parents=True, exist_ok=True)
@@ -167,7 +167,7 @@ def main() -> None:
         sweep=sweep,
         refinement=refinement,
         tables_dir=str(out_tables),
-        stem="competition_threshold",
+        stem="competition_sensitivity_threshold",
     )
 
     plot_rows = list(sweep.rows)
@@ -265,7 +265,7 @@ def main() -> None:
             "representative_market_sizes_for_price_domain": rep_market_sizes,
         },
     }
-    with open(out_logs / "exp_31_competition_base_threshold_run_log.json", "w", encoding="utf-8") as f:
+    with open(out_logs / "exp_45_competition_sensitivity_threshold_run_log.json", "w", encoding="utf-8") as f:
         json.dump(run_log, f, indent=2)
 
     print("Stage 6 threshold pipeline completed.")

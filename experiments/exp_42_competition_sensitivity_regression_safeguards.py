@@ -182,7 +182,7 @@ def main() -> None:
         "demand_distance_to_boundary",
     ]
 
-    threshold_csv = project_root / "results" / "tables" / "competition_threshold_sweep_results.csv"
+    threshold_csv = project_root / "results" / "tables" / "competition_sensitivity_threshold_sweep_results.csv"
     if not threshold_csv.exists():
         # Fall back to smoke CSV if the canonical file is missing.
         threshold_csv = Path(smoke_artifacts.sweep_csv_path)
@@ -210,9 +210,9 @@ def main() -> None:
     # Stage 9 check #4: running u0/tau scripts must not overwrite old M outputs.
     # Competition tau semantics: price sensitivity in q - tau * P (not temperature).
     protected_m_outputs = [
-        project_root / "results" / "tables" / "competition_threshold_sweep_results.csv",
-        project_root / "results" / "tables" / "competition_threshold_summary.json",
-        project_root / "results" / "tables" / "competition_threshold_refinement_history.csv",
+        project_root / "results" / "tables" / "competition_sensitivity_threshold_sweep_results.csv",
+        project_root / "results" / "tables" / "competition_sensitivity_threshold_summary.json",
+        project_root / "results" / "tables" / "competition_sensitivity_threshold_refinement_history.csv",
     ]
     before = _snapshot_files(protected_m_outputs)
 

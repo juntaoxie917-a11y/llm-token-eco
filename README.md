@@ -45,7 +45,7 @@ python -m experiments.exp_11_baseline_base_soft
 python -m experiments.exp_20_baseline_sensitivity_core
 python -m experiments.exp_21_baseline_sensitivity_soft_figures
 python -m experiments.exp_30_competition_base_pipeline
-python -m experiments.exp_31_competition_base_threshold
+python -m experiments.exp_45_competition_sensitivity_threshold
 python -m experiments.exp_40_competition_sensitivity_u0
 python -m experiments.exp_41_competition_sensitivity_tau
 python -m experiments.exp_42_competition_sensitivity_regression_safeguards
@@ -73,7 +73,7 @@ python -m experiments.exp_21_baseline_sensitivity_soft_figures
 
 ```bash
 python -m experiments.exp_30_competition_base_pipeline
-python -m experiments.exp_31_competition_base_threshold
+python -m experiments.exp_45_competition_sensitivity_threshold
 ```
 
 ### Competition sensitivity
@@ -111,7 +111,7 @@ Standard figure directory layout:
 - `results/figures/baseline/sensitivity/`
 - `results/figures/baseline/sensitivity/soft_families/`
 - `results/figures/competition/base/`
-- `results/figures/competition/base/threshold/`
+- `results/figures/competition/sensitivity/threshold/`
 - `results/figures/competition/sensitivity/u0/`
 - `results/figures/competition/sensitivity/tau/`
 - `results/figures/competition/sensitivity/unconstrained_like/`
@@ -122,8 +122,8 @@ Key files after a full run:
 - `results/tables/baseline_optimum.json`
 - `results/tables/competition_stage5_grid_results.csv`
 - `results/tables/competition_stage5_optimum.json`
-- `results/tables/competition_threshold_sweep_results.csv`
-- `results/tables/competition_threshold_summary.json`
+- `results/tables/competition_sensitivity_threshold_sweep_results.csv`
+- `results/tables/competition_sensitivity_threshold_summary.json`
 - `results/tables/u0_sensitivity/u0_sensitivity_results.csv`
 - `results/tables/tau_sensitivity/tau_sensitivity_results.csv`
 - `results/tables/competition_stage9_regression_report.json`
