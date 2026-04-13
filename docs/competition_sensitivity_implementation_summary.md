@@ -58,7 +58,7 @@ This note summarizes what was implemented for competition sensitivity analysis i
 
 ### Stage 5: `u0` sensitivity experiment
 
-- File: `experiments/exp_09_competition_u0_sensitivity.py`
+- File: `experiments/exp_40_competition_sensitivity_u0.py`
 - Produces:
   - row-level CSV,
   - summary JSON,
@@ -67,7 +67,7 @@ This note summarizes what was implemented for competition sensitivity analysis i
 
 ### Stage 6: `tau` sensitivity experiment
 
-- File: `experiments/exp_10_competition_tau_sensitivity.py`
+- File: `experiments/exp_41_competition_sensitivity_tau.py`
 - Produces same artifact structure as `u0` workflow, including:
   - small-`tau` instability diagnostics in JSON,
   - teacher/student price-domain payoff overlays.
@@ -84,7 +84,7 @@ This note summarizes what was implemented for competition sensitivity analysis i
 
 ### Stage 9: Regression safeguards
 
-- File: `experiments/exp_11_competition_stage9_regression_safeguards.py`
+- File: `experiments/exp_42_competition_sensitivity_regression_safeguards.py`
 - Checks implemented:
   1. Smoke run of `M` threshold workflow.
   2. Legacy threshold-column existence check.
@@ -98,19 +98,19 @@ This note summarizes what was implemented for competition sensitivity analysis i
 1. `u0` sensitivity:
 
 ```bash
-python experiments/exp_09_competition_u0_sensitivity.py
+python experiments/exp_40_competition_sensitivity_u0.py
 ```
 
 1. `tau` sensitivity:
 
 ```bash
-python experiments/exp_10_competition_tau_sensitivity.py
+python experiments/exp_41_competition_sensitivity_tau.py
 ```
 
 1. Stage 9 safeguards:
 
 ```bash
-python experiments/exp_11_competition_stage9_regression_safeguards.py
+python experiments/exp_42_competition_sensitivity_regression_safeguards.py
 ```
 
 ## Current Completion Status

@@ -13,8 +13,8 @@ This file records Stage 0 deliverables from `docs/competition_copilot_execution_
 | `src/simulation.py` | Do not reuse directly as final competition runner | Hard outside-option baseline logic differs from downstream-logit outside option in competition model. Use as structural template only. |
 | `src/simulation_soft.py` | Do not reuse directly as final competition runner | Soft participation wrapper is not the same object as downstream market outside option in competition model. |
 | `src/visualization.py` | Reuse style/patterns, add parallel competition plots later | Keep plotting separated from solving; add competition-specific plotting functions in new step. |
-| `experiments/exp_01_hard_outside.py` | Reuse as pattern only | Keep baseline entry script unchanged; create a separate competition experiment entry. |
-| `experiments/exp_02_soft_outside.py` | Reuse as pattern only | Same as above. |
+| `experiments/exp_10_baseline_base_hard.py` | Reuse as pattern only | Keep baseline entry script unchanged; create a separate competition experiment entry. |
+| `experiments/exp_11_baseline_base_soft.py` | Reuse as pattern only | Same as above. |
 
 ## 2) Extension Notes / TODO Markers
 

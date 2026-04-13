@@ -1,7 +1,7 @@
-"""Experiment runner: exp_01_baseline (Tier A).
+"""Experiment runner: exp_10_baseline_base_hard.
 
 Run from project root:
-    python experiments/exp_01_baseline.py
+    python -m experiments.exp_10_baseline_base_hard
 """
 from __future__ import annotations
 
@@ -50,7 +50,7 @@ def main() -> None:
     sim, sim_grids, _ = run_baseline_grid_simulation(cfg=cfg, tech=tech, N=N)
 
     out_tables = project_root / "results" / "tables"
-    out_figs = project_root / "results" / "figures"
+    out_figs = project_root / "results" / "figures" / "baseline" / "base"
     out_logs = project_root / "results" / "logs"
     out_tables.mkdir(parents=True, exist_ok=True)
     out_figs.mkdir(parents=True, exist_ok=True)
@@ -146,7 +146,7 @@ def main() -> None:
         "anchor_errors": anchor_errors,
         "summary": summary,
     }
-    (out_logs / "exp_01_run_log.json").write_text(json.dumps(log_obj, indent=2), encoding="utf-8")
+    (out_logs / "exp_10_baseline_base_hard_run_log.json").write_text(json.dumps(log_obj, indent=2), encoding="utf-8")
 
     plot_scaling_curves(cfg=cfg, tech=tech, N=N, outdir=out_figs, grids=sim_grids)
     plot_student_profit_slices(

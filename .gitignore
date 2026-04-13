@@ -1,9 +1,15 @@
 __pycache__/
+*.py[cod]
 
 .DS_Store
 
-figures/
-logs/
-tables/
+results/figures/
+results/logs/
+results/tables/
+tmp/*
+!.gitkeep
+
+.venv/
+venv/
 
 .idea/

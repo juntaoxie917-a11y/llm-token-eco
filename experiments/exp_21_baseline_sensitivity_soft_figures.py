@@ -3,8 +3,6 @@ from __future__ import annotations
 import argparse
 import copy
 import json
-import os
-import sys
 import time
 from pathlib import Path
 from typing import Any, Dict, List
@@ -15,7 +13,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+try:
+    from experiments._bootstrap import ensure_project_root_on_path
+except ModuleNotFoundError:
+    from _bootstrap import ensure_project_root_on_path
+
+PROJECT_ROOT = ensure_project_root_on_path(__file__)
 
 from src.config_loader import load_and_validate
 from src.scaling_laws import build_tierA_from_config
@@ -140,14 +143,14 @@ def main() -> None:
     parser.add_argument("--p-points", type=int, default=220, help="Price grid points for smooth curves")
     args = parser.parse_args()
 
-    root = Path(__file__).resolve().parents[1]
+    root = PROJECT_ROOT
     cfg = load_and_validate(root / "config" / "soft.yaml")
 
     # Keep fine p-grid for smoother curves.
     cfg["grids"]["p_points"] = int(max(120, args.p_points))
 
     out_tables = root / "results" / "tables"
-    out_fig_dir = root / "results" / "figures" / "sensitivity_soft"
+    out_fig_dir = root / "results" / "figures" / "baseline" / "sensitivity" / "soft_families"
     out_tables.mkdir(parents=True, exist_ok=True)
     out_fig_dir.mkdir(parents=True, exist_ok=True)
 
@@ -184,7 +187,6 @@ def main() -> None:
         "mode": "soft_only",
         "params": params,
         "metrics": metrics,
-        "curve_count_per_param": 10,
         "curve_count_per_param": int(args.curve_levels),
         "p_points": int(cfg["grids"]["p_points"]),
         "rows": int(len(full)),

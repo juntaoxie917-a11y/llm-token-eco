@@ -15,8 +15,8 @@ except ModuleNotFoundError:
 
 PROJECT_ROOT = ensure_project_root_on_path(__file__)
 
-from experiments.exp_09_competition_u0_sensitivity import main as run_u0_sensitivity_exp
-from experiments.exp_10_competition_tau_sensitivity import main as run_tau_sensitivity_exp
+from experiments.exp_40_competition_sensitivity_u0 import main as run_u0_sensitivity_exp
+from experiments.exp_41_competition_sensitivity_tau import main as run_tau_sensitivity_exp
 from src.competition_downstream_solver import build_downstream_solver_params_from_config
 from src.competition_static import build_competition_params_from_config
 from src.competition_threshold import (
@@ -269,7 +269,7 @@ def main() -> None:
     report_path = out_tables / "competition_stage9_regression_report.json"
     report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
 
-    run_log_path = out_logs / "exp_11_competition_stage9_regression_run_log.json"
+    run_log_path = out_logs / "exp_42_competition_sensitivity_regression_safeguards_run_log.json"
     run_log = {
         "timestamp_utc": report["timestamp_utc"],
         "report_path": str(report_path),

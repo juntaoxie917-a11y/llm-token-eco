@@ -3,8 +3,6 @@ from __future__ import annotations
 import argparse
 import copy
 import json
-import os
-import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -16,7 +14,12 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+try:
+    from experiments._bootstrap import ensure_project_root_on_path
+except ModuleNotFoundError:
+    from _bootstrap import ensure_project_root_on_path
+
+PROJECT_ROOT = ensure_project_root_on_path(__file__)
 
 from src.config_loader import load_and_validate
 from src.scaling_laws import build_tierA_from_config
@@ -413,7 +416,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
 
-    project_root = Path(__file__).resolve().parents[1]
+    project_root = PROJECT_ROOT
     cfg_hard = load_and_validate(project_root / "config" / "base.yaml")
     cfg_soft = load_and_validate(project_root / "config" / "soft.yaml")
 
@@ -429,7 +432,7 @@ def main() -> None:
     soft_ranges = _build_ranges(soft_base_vals, mode="soft")
 
     out_tables = project_root / "results" / "tables"
-    out_figs = project_root / "results" / "figures"
+    out_figs = project_root / "results" / "figures" / "baseline" / "sensitivity"
     out_tables.mkdir(parents=True, exist_ok=True)
     out_figs.mkdir(parents=True, exist_ok=True)
 

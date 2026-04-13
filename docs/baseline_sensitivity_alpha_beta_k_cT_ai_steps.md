@@ -13,10 +13,10 @@
 2. Technology builder: src/scaling_laws.py
 3. Hard simulation: src/simulation.py
 4. Soft simulation: src/simulation_soft.py
-5. Reference run scripts: experiments/exp_01_hard_outside.py and experiments/exp_02_soft_outside.py
+5. Reference run scripts: experiments/exp_10_baseline_base_hard.py and experiments/exp_11_baseline_base_soft.py
 
 ## 2) New Files
-1. experiments/exp_03_sensitivity_core_and_soft.py
+1. experiments/exp_20_baseline_sensitivity_core.py
 2. results/tables/sens_hard_oat.csv
 3. results/tables/sens_hard_sobol.csv
 4. results/tables/sens_soft_oat.csv

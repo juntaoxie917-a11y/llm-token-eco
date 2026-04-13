@@ -53,7 +53,7 @@ def main() -> None:
     )
 
     out_tables = base_dir / "results" / "tables"
-    out_figs = base_dir / "results" / "figures"
+    out_figs = base_dir / "results" / "figures" / "competition" / "base"
     out_logs = base_dir / "results" / "logs"
     out_tables.mkdir(parents=True, exist_ok=True)
     out_figs.mkdir(parents=True, exist_ok=True)
@@ -62,7 +62,7 @@ def main() -> None:
     csv_path = out_tables / "competition_stage5_grid_results.csv"
     summary_path = out_tables / "competition_stage5_optimum.json"
     diagnostics_path = out_tables / "competition_stage5_diagnostics.json"
-    log_path = out_logs / "exp_07_competition_stage5_run_log.json"
+    log_path = out_logs / "exp_30_competition_base_pipeline_run_log.json"
 
     df = to_dataframe(sim)
     df.to_csv(csv_path, index=False)

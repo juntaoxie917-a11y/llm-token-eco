@@ -1,260 +1,137 @@
-# Distillation Tier A: Baseline and Competition
+# Distillation Tier A: Reproduction Guide
 
-This repository contains two directly runnable model families for paper comparison:
+This document is a step-by-step guide to reproduce the baseline and competition experiments from this repository.
 
-- Baseline model (hard/soft outside option)
-- Competition extension (downstream logit pricing game nested inside upstream pricing)
+## 1) Environment
 
-## Project Structure (Essential Files)
+Use Python `3.10` and create the environment with one of the following methods.
 
-Core shared blocks:
-
-- `src/config_loader.py`
-- `src/normalization.py`
-- `src/scaling_laws.py`
-- `src/model.py`
-
-Baseline modules:
-
-- `src/simulation.py`
-- `src/simulation_soft.py`
-- `src/visualization.py`
-- `experiments/exp_01_hard_outside.py`
-- `experiments/exp_02_soft_outside.py`
-
-Competition modules:
-
-- `src/competition_static.py`
-- `src/competition_downstream_solver.py`
-- `src/competition_student.py`
-- `src/competition_simulation.py`
-- `src/competition_threshold.py`
-- `src/competition_visualization.py`
-- `experiments/exp_07_competition_stage5_pipeline.py`
-- `experiments/exp_08_competition_market_threshold.py`
-
-Configs:
-
-- `config/base.yaml`
-- `config/soft.yaml`
-- `config/competition.yaml`
-
-`soft.yaml` and `competition.yaml` both support `run.base_config` to reuse `base.yaml` and keep only scenario-specific overrides.
-
-Reference docs:
-
-- `docs/baseline_reconstruction.md`
-- `docs/competition_ai_briefing.md`
-
-## Environment Setup
-
-Python and dependency baseline:
-
-- Python `3.10` (recommended)
-- OS: macOS/Windows/Linux
-
-Choose **one** environment path below.
-
-### Option A: Conda (recommended)
+### Conda
 
 ```bash
 conda env create -f environment.yml
 conda activate llm-econ
 ```
 
-If the environment already exists:
+If environment already exists:
 
 ```bash
 conda env update -f environment.yml --prune
 conda activate llm-econ
 ```
 
-### Option B: venv + pip
-
-macOS/Linux:
+### venv + pip
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
-Windows PowerShell:
+## 2) Optional Cleanup
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-```
-
-Reproducibility note:
-
-- Default seed is configured as `experiment.seed: 42` in `config/base.yaml`.
-- `soft.yaml` and `competition.yaml` inherit from `base.yaml` via `run.base_config` unless overridden.
-
-## Reproduce From Scratch (Recommended Sequence)
-
-From repository root, run in this order:
+To avoid mixing old and new outputs, clear generated artifacts before running:
 
 ```bash
-python -m experiments.exp_01_hard_outside
-python -m experiments.exp_02_soft_outside
-python -m experiments.exp_07_competition_stage5_pipeline
-python -m experiments.exp_08_competition_market_threshold
-python -m experiments.exp_09_competition_u0_sensitivity
-python -m experiments.exp_10_competition_tau_sensitivity
-python -m experiments.exp_11_competition_stage9_regression_safeguards
-python -m experiments.exp_12_competition_unconstrained_like_stability
-python -m experiments.exp_13_competition_unconstrained_like_plots
+python -c "from pathlib import Path; import shutil; [shutil.rmtree(p, ignore_errors=True) for p in [Path('results/tables'), Path('results/figures'), Path('results/logs')]]"
 ```
 
-Optional: clean old artifacts first to avoid confusing old/new outputs.
+## 3) Full Reproduction Order
+
+Run from repository root in the following order:
 
 ```bash
-rm -rf results/tables/* results/figures/* results/logs/*
+python -m experiments.exp_10_baseline_base_hard
+python -m experiments.exp_11_baseline_base_soft
+python -m experiments.exp_20_baseline_sensitivity_core
+python -m experiments.exp_21_baseline_sensitivity_soft_figures
+python -m experiments.exp_30_competition_base_pipeline
+python -m experiments.exp_31_competition_base_threshold
+python -m experiments.exp_40_competition_sensitivity_u0
+python -m experiments.exp_41_competition_sensitivity_tau
+python -m experiments.exp_42_competition_sensitivity_regression_safeguards
+python -m experiments.exp_43_competition_sensitivity_unconstrained_stability
+python -m experiments.exp_44_competition_sensitivity_unconstrained_plots
 ```
 
-Windows PowerShell equivalent:
+## 4) Minimal Subset Runs
 
-```powershell
-Remove-Item results/tables/*,results/figures/*,results/logs/* -Recurse -Force -ErrorAction SilentlyContinue
-```
-
-## How To Run
-
-Recommended (cross-platform, works the same on macOS and Windows):
+### Baseline only
 
 ```bash
-python -m experiments.exp_01_hard_outside
-python -m experiments.exp_02_soft_outside
-python -m experiments.exp_07_competition_stage5_pipeline
-python -m experiments.exp_08_competition_market_threshold
-python -m experiments.exp_09_competition_u0_sensitivity
-python -m experiments.exp_10_competition_tau_sensitivity
-python -m experiments.exp_11_competition_stage9_regression_safeguards
-python -m experiments.exp_12_competition_unconstrained_like_stability
-python -m experiments.exp_13_competition_unconstrained_like_plots
+python -m experiments.exp_10_baseline_base_hard
+python -m experiments.exp_11_baseline_base_soft
 ```
 
-Legacy direct-file invocation is also supported:
-
-Baseline:
+### Sensitivity core + soft figures
 
 ```bash
-python experiments/exp_01_hard_outside.py
-python experiments/exp_02_soft_outside.py
+python -m experiments.exp_20_baseline_sensitivity_core
+python -m experiments.exp_21_baseline_sensitivity_soft_figures
 ```
 
-Competition:
+### Competition core + threshold
 
 ```bash
-python experiments/exp_07_competition_stage5_pipeline.py
+python -m experiments.exp_30_competition_base_pipeline
+python -m experiments.exp_31_competition_base_threshold
 ```
 
-Competition threshold analysis (market-size critical threshold):
+### Competition sensitivity
 
 ```bash
-python experiments/exp_08_competition_market_threshold.py
+python -m experiments.exp_40_competition_sensitivity_u0
+python -m experiments.exp_41_competition_sensitivity_tau
 ```
 
-Competition sensitivity analysis (`u0` and `tau`, separate 1D workflows):
+### Regression and unconstrained-like stages
 
 ```bash
-python experiments/exp_09_competition_u0_sensitivity.py
-python experiments/exp_10_competition_tau_sensitivity.py
+python -m experiments.exp_42_competition_sensitivity_regression_safeguards
+python -m experiments.exp_43_competition_sensitivity_unconstrained_stability
+python -m experiments.exp_44_competition_sensitivity_unconstrained_plots
 ```
 
-Competition Stage 9 regression safeguards:
+## 5) Reproducibility Controls
 
-```bash
-python experiments/exp_11_competition_stage9_regression_safeguards.py
-```
+- Default seed is `experiment.seed: 42` in `config/base.yaml`.
+- `config/soft.yaml` and `config/competition.yaml` can inherit from `config/base.yaml` via `run.base_config`.
+- Threshold-analysis settings are in `config/competition.yaml` under `competition.threshold_analysis.*`.
 
-Threshold settings are configured in `config/competition.yaml` under:
+## 6) Output Artifacts
 
-- `competition.threshold_analysis.market_size_min`
-- `competition.threshold_analysis.market_size_max`
-- `competition.threshold_analysis.market_size_points`
-- `competition.threshold_analysis.market_size_grid` (optional explicit grid)
-- `competition.threshold_analysis.run_refinement`
-- `competition.threshold_analysis.refinement_tol`
-- `competition.threshold_analysis.max_refinement_steps`
-- `competition.threshold_analysis.tolerances.*`
-
-## Outputs
-
-Main outputs are written to:
+Primary output directories:
 
 - `results/tables/`
 - `results/figures/`
 - `results/logs/`
 
-For competition runs, key files include:
+Standard figure directory layout:
 
+- `results/figures/baseline/base/`
+- `results/figures/baseline/sensitivity/`
+- `results/figures/baseline/sensitivity/soft_families/`
+- `results/figures/competition/base/`
+- `results/figures/competition/base/threshold/`
+- `results/figures/competition/sensitivity/u0/`
+- `results/figures/competition/sensitivity/tau/`
+- `results/figures/competition/sensitivity/unconstrained_like/`
+
+Key files after a full run:
+
+- `results/tables/baseline_demand_curve.csv`
+- `results/tables/baseline_optimum.json`
 - `results/tables/competition_stage5_grid_results.csv`
 - `results/tables/competition_stage5_optimum.json`
-- `results/tables/competition_stage5_diagnostics.json`
-- `results/figures/fig_comp_01_dstar_vs_p.*`
-- `results/figures/fig_comp_02_teacher_profit_vs_p.*`
-- `results/figures/fig_comp_03_downstream_prices_vs_p.*`
-- `results/figures/fig_comp_04_downstream_shares_vs_p.*`
-- `results/figures/fig_comp_05_student_profit_vs_p.*`
-
-For threshold-analysis runs (`exp_08`), key files include:
-
 - `results/tables/competition_threshold_sweep_results.csv`
 - `results/tables/competition_threshold_summary.json`
-- `results/tables/competition_threshold_refinement_history.csv` (if refinement runs)
-- `results/figures/threshold/fig_comp_threshold_01_strict_vs_market_size.*`
-- `results/figures/threshold/fig_comp_threshold_02_weak_vs_market_size.*` (if enabled)
-- `results/figures/threshold/fig_comp_threshold_03_p_star_vs_market_size.*`
-- `results/figures/threshold/fig_comp_threshold_04_d_star_vs_market_size.*`
-- `results/figures/threshold/fig_comp_threshold_05_teacher_payoff_vs_market_size.*`
-- `results/figures/threshold/fig_comp_threshold_06_distances_vs_market_size.*`
-- `results/figures/threshold/fig_comp_threshold_07_min_share_vs_market_size.*`
-- `results/logs/exp_08_competition_threshold_run_log.json`
-
-For sensitivity runs (`exp_09`, `exp_10`), key files include:
-
 - `results/tables/u0_sensitivity/u0_sensitivity_results.csv`
-- `results/tables/u0_sensitivity/u0_sensitivity_summary.json`
-- `results/tables/u0_sensitivity/u0_sensitivity_diagnostics.json`
 - `results/tables/tau_sensitivity/tau_sensitivity_results.csv`
-- `results/tables/tau_sensitivity/tau_sensitivity_summary.json`
-- `results/tables/tau_sensitivity/tau_sensitivity_diagnostics.json`
-- `results/figures/u0_sensitivity/fig_u0_*.{pdf,svg,png}`
-- `results/figures/tau_sensitivity/fig_tau_*.{pdf,svg,png}`
-
-Backward-compatible table mirrors are also kept at top level:
-
-- `results/tables/u0_sensitivity_results.csv`
-- `results/tables/u0_sensitivity_summary.json`
-- `results/tables/u0_sensitivity_diagnostics.json`
-- `results/tables/tau_sensitivity_results.csv`
-- `results/tables/tau_sensitivity_summary.json`
-- `results/tables/tau_sensitivity_diagnostics.json`
-
-For Stage 9 safeguards (`exp_11`), key files include:
-
 - `results/tables/competition_stage9_regression_report.json`
-- `results/tables/competition_threshold_stage9_smoke_sweep_results.csv`
-- `results/tables/competition_threshold_stage9_smoke_summary.json`
-- `results/tables/competition_threshold_stage9_smoke_refinement_history.csv`
-- `results/logs/exp_11_competition_stage9_regression_run_log.json`
 
-## Reproduction Checklist
+## 7) Completion Checklist
 
-Use this checklist to confirm the run is complete and reproducible:
-
-- Baseline artifacts: `results/tables/baseline_demand_curve.csv`, `results/tables/baseline_optimum.json`
-- Competition Stage 5 artifacts: `results/tables/competition_stage5_grid_results.csv`, `results/tables/competition_stage5_optimum.json`
-- Threshold artifacts: `results/tables/competition_threshold_sweep_results.csv`, `results/tables/competition_threshold_summary.json`
-- Sensitivity artifacts: `results/tables/u0_sensitivity/u0_sensitivity_results.csv`, `results/tables/tau_sensitivity/tau_sensitivity_results.csv`
-- Regression safeguard report: `results/tables/competition_stage9_regression_report.json` and `all_passed == true`
-
-## Sensitivity Notes
-
-- Sensitivity classification intentionally reuses `src/competition_threshold.py` logic so results are comparable with market-size threshold analysis.
-- `u0` and `tau` are implemented as separate workflows by design.
-- A full implementation summary is documented in:
-  - `docs/competition_sensitivity_implementation_summary.md`
+- Baseline tables generated.
+- Competition Stage 5 tables generated.
+- Threshold sweep and summary generated.
+- `u0` and `tau` sensitivity tables generated.
+- Stage 9 report exists and `all_passed == true`.

@@ -451,7 +451,7 @@ def main() -> None:
 
     run_log = {
         "timestamp_utc": payload["timestamp_utc"],
-        "experiment": "exp_12_competition_unconstrained_like_stability",
+        "experiment": "exp_43_competition_sensitivity_unconstrained_stability",
         "tau_semantics": payload["tau_semantics"],
         "artifacts": {
             "summary_csv": str(summary_csv_path),
@@ -460,7 +460,7 @@ def main() -> None:
             "unresolved_csv": str(unresolved_csv_path),
         },
     }
-    run_log_path = out_logs / "exp_12_competition_unconstrained_like_stability_run_log.json"
+    run_log_path = out_logs / "exp_43_competition_sensitivity_unconstrained_stability_run_log.json"
     run_log_path.write_text(json.dumps(run_log, indent=2), encoding="utf-8")
 
     print("Stage 12 unconstrained-like stability check completed.")

@@ -29,7 +29,7 @@ def main():
     cfg = load_with_base_config(cfg_path, project_root=base_dir)
 
     out_tables = base_dir / "results" / "tables"
-    out_figs = base_dir / "results" / "figures"
+    out_figs = base_dir / "results" / "figures" / "baseline" / "base"
     out_tables.mkdir(parents=True, exist_ok=True)
     out_figs.mkdir(parents=True, exist_ok=True)
 

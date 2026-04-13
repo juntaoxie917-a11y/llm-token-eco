@@ -25,7 +25,7 @@ Recommended `K = 2` for quick run, `K = 3` for report-quality run.
 1. Keep all existing outputs unchanged (already generated files remain as baseline references).
 2. Run new analysis in isolated output prefix only:
 - `results/tables/unconstrained_like/`
-- `results/figures/unconstrained_like/`
+- `results/figures/competition/sensitivity/unconstrained_like/`
 - `results/logs/`
 3. Do not overwrite:
 - `results/tables/competition_threshold_*`
@@ -187,18 +187,18 @@ Use this section as the direct runbook. Execute tasks in order.
 
 | Task ID | Purpose | Command / Action | Expected Outputs | Chart Checkpoint |
 |---|---|---|---|---|
-| T1 | Preserve baseline outputs and create isolated output folders | `mkdir -p results/tables/unconstrained_like results/figures/unconstrained_like results/logs` | New unconstrained-like folders exist | N/A |
-| T2 | Run coarse unconstrained-like stability panel (`p_max = 50,80,120,200`) | `python -u experiments/exp_12_competition_unconstrained_like_stability.py` | `results/tables/unconstrained_like/competition_unconstrained_like_stability_summary.csv`; `results/tables/unconstrained_like/competition_unconstrained_like_stability_summary.json`; `results/logs/exp_12_competition_unconstrained_like_stability_run_log.json` | N/A |
-| T3 | Export long-form panel for plotting | `python -u experiments/exp_12_competition_unconstrained_like_stability.py` (already includes panel export) | `results/tables/unconstrained_like/competition_unconstrained_like_panel.csv`; `results/tables/unconstrained_like/competition_unconstrained_like_unresolved_points.csv` | N/A |
-| T4 | Plot label heatmap for `M` | `python -u experiments/exp_13_competition_unconstrained_like_plots.py` | `results/figures/unconstrained_like/fig_unconstrained_M_label_heatmap.(png/pdf/svg)` | Verify high-`p_max` rows do not show artificial upper-boundary artifacts if classification is stable |
-| T5 | Plot label heatmap for `u0` | `python -u experiments/exp_13_competition_unconstrained_like_plots.py` | `results/figures/unconstrained_like/fig_unconstrained_u0_label_heatmap.(png/pdf/svg)` | Verify negative tail behavior and whether high-`p_max` rows switch from bound-limited to robust non-interior |
-| T6 | Plot label heatmap for `tau` | `python -u experiments/exp_13_competition_unconstrained_like_plots.py` | `results/figures/unconstrained_like/fig_unconstrained_tau_label_heatmap.(png/pdf/svg)` | Verify low-`tau` and high-`tau` sides separately |
-| T7 | Plot threshold-endpoint stability vs `p_max` | `python -u experiments/exp_13_competition_unconstrained_like_plots.py` | `results/figures/unconstrained_like/fig_unconstrained_threshold_endpoint_vs_pmax.(png/pdf/svg)` | Endpoint should flatten if robust |
+| T1 | Preserve baseline outputs and create isolated output folders | `mkdir -p results/tables/unconstrained_like results/figures/competition/sensitivity/unconstrained_like results/logs` | New unconstrained-like folders exist | N/A |
+| T2 | Run coarse unconstrained-like stability panel (`p_max = 50,80,120,200`) | `python -u experiments/exp_43_competition_sensitivity_unconstrained_stability.py` | `results/tables/unconstrained_like/competition_unconstrained_like_stability_summary.csv`; `results/tables/unconstrained_like/competition_unconstrained_like_stability_summary.json`; `results/logs/exp_43_competition_sensitivity_unconstrained_stability_run_log.json` | N/A |
+| T3 | Export long-form panel for plotting | `python -u experiments/exp_43_competition_sensitivity_unconstrained_stability.py` (already includes panel export) | `results/tables/unconstrained_like/competition_unconstrained_like_panel.csv`; `results/tables/unconstrained_like/competition_unconstrained_like_unresolved_points.csv` | N/A |
+| T4 | Plot label heatmap for `M` | `python -u experiments/exp_44_competition_sensitivity_unconstrained_plots.py` | `results/figures/competition/sensitivity/unconstrained_like/fig_unconstrained_M_label_heatmap.(png/pdf/svg)` | Verify high-`p_max` rows do not show artificial upper-boundary artifacts if classification is stable |
+| T5 | Plot label heatmap for `u0` | `python -u experiments/exp_44_competition_sensitivity_unconstrained_plots.py` | `results/figures/competition/sensitivity/unconstrained_like/fig_unconstrained_u0_label_heatmap.(png/pdf/svg)` | Verify negative tail behavior and whether high-`p_max` rows switch from bound-limited to robust non-interior |
+| T6 | Plot label heatmap for `tau` | `python -u experiments/exp_44_competition_sensitivity_unconstrained_plots.py` | `results/figures/competition/sensitivity/unconstrained_like/fig_unconstrained_tau_label_heatmap.(png/pdf/svg)` | Verify low-`tau` and high-`tau` sides separately |
+| T7 | Plot threshold-endpoint stability vs `p_max` | `python -u experiments/exp_44_competition_sensitivity_unconstrained_plots.py` | `results/figures/competition/sensitivity/unconstrained_like/fig_unconstrained_threshold_endpoint_vs_pmax.(png/pdf/svg)` | Endpoint should flatten if robust |
 | T8 | Identify unresolved neighborhoods | Action: mark points that still flip labels across adjacent `p_max` or remain bound-limited at largest tested `p_max` | `results/tables/unconstrained_like/competition_unconstrained_like_unresolved_points.csv` | N/A |
 | T9 | Adaptive refinement round 1 | Action: for unresolved points only, extend `p_max` with `300`; add local parameter midpoints around transitions | Updated panel and summary tables | Re-check T4-T7 figures after update |
 | T10 | Adaptive refinement round 2 (only if needed) | Action: unresolved points only, extend `p_max` with `500`; local midpoint refinement again | Updated panel and summary tables | Re-check T4-T7 figures after update |
 | T11 | Apply stopping criteria | Action: check endpoint change, boundary-hit share change, unresolved ratio against Section 5 thresholds | `results/tables/unconstrained_like/competition_unconstrained_like_stop_check.json` | N/A |
-| T12 | Final report pack | Action: freeze final CSV/JSON and figure set; include interpretation text template from Section 10 | Final deliverables under `results/tables/unconstrained_like` and `results/figures/unconstrained_like` | Final figure bundle complete |
+| T12 | Final report pack | Action: freeze final CSV/JSON and figure set; include interpretation text template from Section 10 | Final deliverables under `results/tables/unconstrained_like` and `results/figures/competition/sensitivity/unconstrained_like` | Final figure bundle complete |
 
 ## 12. Direct Execution Notes
 

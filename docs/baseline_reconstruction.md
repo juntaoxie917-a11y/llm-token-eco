@@ -4,8 +4,8 @@
 
 This codebase implements **one baseline theory** from `whole_baseline.md`, with **two baseline variants**:
 
-- **Hard outside option**: `simulation.py` + `base.yaml` + `exp_01_hard_outside.py`
-- **Soft outside option**: `simulation_soft.py` + `soft.yaml` + `exp_02_soft_outside.py`
+- **Hard outside option**: `simulation.py` + `base.yaml` + `exp_10_baseline_base_hard.py`
+- **Soft outside option**: `simulation_soft.py` + `soft.yaml` + `exp_11_baseline_base_soft.py`
 
 Both variants share the same technology block and payoff core.
 
@@ -31,8 +31,8 @@ The project pipeline is:
 - `simulation.py` — hard-outside baseline simulation over a price grid.
 - `simulation_soft.py` — soft-outside baseline simulation over a price grid.
 - `visualization.py` — plotting and figure export.
-- `exp_01_hard_outside.py` — runnable hard-outside experiment script.
-- `exp_02_soft_outside.py` — runnable soft-outside experiment script.
+- `exp_10_baseline_base_hard.py` — runnable hard-outside experiment script.
+- `exp_11_baseline_base_soft.py` — runnable soft-outside experiment script.
 
 ---
 
@@ -234,8 +234,8 @@ Logic:
 
 ## Which script runs experiments
 
-- `exp_01_hard_outside.py` — main runnable script for hard-outside baseline experiments
-- `exp_02_soft_outside.py` — main runnable script for soft-outside baseline experiments
+- `exp_10_baseline_base_hard.py` — main runnable script for hard-outside baseline experiments
+- `exp_11_baseline_base_soft.py` — main runnable script for soft-outside baseline experiments
 
 These scripts do the full pipeline:
 
@@ -266,8 +266,8 @@ It contains plot functions for:
 
 The main save logic is in the experiment entry scripts:
 
-- `exp_01_hard_outside.py`
-- `exp_02_soft_outside.py`
+- `exp_10_baseline_base_hard.py`
+- `exp_11_baseline_base_soft.py`
 
 Typical outputs:
 

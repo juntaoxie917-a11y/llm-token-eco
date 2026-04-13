@@ -128,7 +128,7 @@ def _plot_threshold_endpoint_vs_pmax(*, summary: pd.DataFrame, outdir: Path) -> 
 
 def main() -> None:
     project_root = PROJECT_ROOT
-    out_figs = project_root / "results" / "figures" / "unconstrained_like"
+    out_figs = project_root / "results" / "figures" / "competition" / "sensitivity" / "unconstrained_like"
     out_tables = project_root / "results" / "tables" / "unconstrained_like"
 
     panel_csv = out_tables / "competition_unconstrained_like_panel.csv"
