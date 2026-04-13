@@ -7,7 +7,7 @@ Step 3 responsibility:
 Design goals:
 - Keep payoffs separate from the scaling-law technology implementation.
 - Provide diagnostics that help validate interior solutions and catch boundary optima.
-- Make the solver reusable in extensions (competition may require multiple best responses).
+- Make the solver reusable across baseline analysis workflows.
 """
 
 from __future__ import annotations
