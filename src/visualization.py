@@ -10,30 +10,16 @@ This file does NOT run simulations; it only plots from inputs (cfg, tech, sim re
 
 from __future__ import annotations
 
-from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from .scaling_laws import TierATechnology
 from .simulation import SimulationResult, SimulationGrids
-
-import numpy as np
-import pandas as pd
-
-
-def _save_figure(fig: plt.Figure, outpath_base: Path, *, save_png: bool = True, dpi: int = 300) -> None:
-    """
-    Save figure as PDF and SVG (and optionally PNG) for LaTeX + Word workflows.
-    """
-    outpath_base.parent.mkdir(parents=True, exist_ok=True)
-
-    fig.savefig(outpath_base.with_suffix(".pdf"), bbox_inches="tight")
-    fig.savefig(outpath_base.with_suffix(".svg"), bbox_inches="tight")
-    if save_png:
-        fig.savefig(outpath_base.with_suffix(".png"), dpi=dpi, bbox_inches="tight")
+from .io_utils import save_figure_bundle
 
 
 def _footer_from_config(cfg: Dict[str, Any]) -> str:
@@ -89,7 +75,7 @@ def plot_scaling_curves(
 
     # fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
 
-    _save_figure(fig, outdir / "fig_01_scaling_curves", save_png=save_png)
+    save_figure_bundle(fig, outdir / "fig_01_scaling_curves", save_png=save_png)
     plt.close(fig)
 
 
@@ -129,7 +115,7 @@ def plot_student_profit_slices(
 
     # fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
 
-    _save_figure(fig, outdir / "fig_02_student_profit_slices", save_png=save_png)
+    save_figure_bundle(fig, outdir / "fig_02_student_profit_slices", save_png=save_png)
     plt.close(fig)
 
 
@@ -169,7 +155,7 @@ def plot_demand_curve(
 
     # fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
 
-    _save_figure(fig, outdir / "fig_03_demand_curve", save_png=save_png)
+    save_figure_bundle(fig, outdir / "fig_03_demand_curve", save_png=save_png)
     plt.close(fig)
 
 
@@ -201,7 +187,7 @@ def plot_teacher_profit(
 
     # fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
 
-    _save_figure(fig, outdir / "fig_04_teacher_profit", save_png=save_png)
+    save_figure_bundle(fig, outdir / "fig_04_teacher_profit", save_png=save_png)
     plt.close(fig)
 
 def plot_student_indirect_payoff(
@@ -252,7 +238,7 @@ def plot_student_indirect_payoff(
 
     # fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
 
-    _save_figure(fig, outdir / "fig_05_student_indirect_payoff", save_png=save_png)
+    save_figure_bundle(fig, outdir / "fig_05_student_indirect_payoff", save_png=save_png)
     plt.close(fig)
     
 def plot_soft_demand_curve(*, cfg: Dict[str, Any], df: "pd.DataFrame", outdir: Path, save_png: bool = True) -> None:
@@ -279,7 +265,7 @@ def plot_soft_demand_curve(*, cfg: Dict[str, Any], df: "pd.DataFrame", outdir: P
 
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     # fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
-    _save_figure(fig, outdir / "fig_soft_01_demand", save_png=save_png)
+    save_figure_bundle(fig, outdir / "fig_soft_01_demand", save_png=save_png)
     plt.close(fig)
 
 
@@ -302,13 +288,13 @@ def plot_soft_teacher_profit(*, cfg: Dict[str, Any], df: "pd.DataFrame", outdir:
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
     # fig.text(0.01, -0.08, _footer_from_config(cfg), ha="left", va="top", fontsize=8)
-    _save_figure(fig, outdir / "fig_soft_02_teacher_profit", save_png=save_png)
+    save_figure_bundle(fig, outdir / "fig_soft_02_teacher_profit", save_png=save_png)
     plt.close(fig)
 
 def plot_soft_student_payoff(
     *,
     cfg: Dict[str, Any],
-    df,
+    df: pd.DataFrame,
     outdir: Path,
     stem: str = "fig_soft_03_student_payoff",
 ) -> None:
@@ -384,9 +370,5 @@ def plot_soft_student_payoff(
     footer = f"a={econ.get('a')}, b={econ.get('b')}, k={econ.get('k')}, c_T={econ.get('c_T')}, tau={soft.get('tau')}"
     # fig.text(0.01, -0.08, footer, ha="left", va="top", fontsize=8)
 
-    # Save PDF/SVG/PNG
-    fig.savefig(outdir / f"{stem}.pdf", bbox_inches="tight")
-    fig.savefig(outdir / f"{stem}.svg", bbox_inches="tight")
-    fig.savefig(outdir / f"{stem}.png", dpi=200, bbox_inches="tight")
+    save_figure_bundle(fig, outdir / stem, save_png=True, dpi=200)
     plt.close(fig)
-    

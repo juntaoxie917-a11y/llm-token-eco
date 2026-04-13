@@ -15,7 +15,12 @@ except ImportError as e:
 
 
 def load_yaml(path: str | Path) -> Dict[str, Any]:
-    path = Path(path)
+    path = Path(path).expanduser().resolve()
+    if not path.exists():
+        raise FileNotFoundError(f"Config file not found: {path}")
+    if path.is_dir():
+        raise IsADirectoryError(f"Expected config file but got directory: {path}")
+
     with path.open("r", encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
     if not isinstance(cfg, dict):
@@ -117,7 +122,7 @@ def load_with_base_config(path: str | Path, *, project_root: Optional[str | Path
     1) `project_root / base_config` if project_root is provided;
     2) `config_file_dir / base_config` otherwise.
     """
-    cfg_path = Path(path)
+    cfg_path = Path(path).expanduser().resolve()
     cfg_raw = load_yaml(cfg_path)
 
     run_cfg = cfg_raw.get("run", {})
@@ -127,11 +132,11 @@ def load_with_base_config(path: str | Path, *, project_root: Optional[str | Path
         validate_base_config(cfg_raw)
         return cfg_raw
 
-    base_ref_path = Path(str(base_ref))
+    base_ref_path = Path(str(base_ref)).expanduser()
     if base_ref_path.is_absolute():
         base_path = base_ref_path
     elif project_root is not None:
-        base_path = Path(project_root) / base_ref_path
+        base_path = Path(project_root).expanduser().resolve() / base_ref_path
     else:
         base_path = cfg_path.parent / base_ref_path
 

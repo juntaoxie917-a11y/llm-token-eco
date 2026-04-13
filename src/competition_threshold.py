@@ -11,7 +11,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from dataclasses import asdict
-import json
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
@@ -19,6 +18,7 @@ from .competition_downstream_solver import DownstreamSolverParams
 from .competition_simulation import run_competition_grid_simulation
 from .competition_simulation import CompetitionSimulationResult, CompetitionSimulationRow
 from .competition_static import CompetitionParams
+from .io_utils import write_json
 from .model import GridsParams
 from .scaling_laws import TierATechnology
 from .simulation import SimulationGrids
@@ -654,7 +654,7 @@ def run_market_size_sweep(
     include_weak: bool = True,
     use_student_cache: bool = True,
     student_cache_precision: int = 8,
-    output_csv_path: Optional[str] = None,
+    output_csv_path: Optional[str | Path] = None,
 ) -> MarketSizeSweepResult:
     """Run a coarse market-size sweep using the Stage-2 single-point wrapper."""
     rows: List[MarketSizeEvaluationResult] = []
@@ -679,7 +679,7 @@ def run_market_size_sweep(
 
     if output_csv_path is not None:
         df = sweep_results_to_dataframe(rows)
-        df.to_csv(output_csv_path, index=False)
+        df.to_csv(Path(output_csv_path), index=False)
 
     return MarketSizeSweepResult(rows=rows, pattern=pattern)
 
@@ -1057,7 +1057,7 @@ def build_threshold_summary(
 def save_threshold_outputs(
     *,
     sweep: MarketSizeSweepResult,
-    tables_dir: str,
+    tables_dir: str | Path,
     refinement: Optional[ThresholdRefinementResult] = None,
     stem: str = "competition_threshold",
 ) -> ThresholdArtifacts:
@@ -1078,8 +1078,7 @@ def save_threshold_outputs(
         hist_df.to_csv(refinement_history_csv_path, index=False)
 
     payload = build_threshold_summary(sweep=sweep, refinement=refinement)
-    with open(summary_json_path, "w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=2)
+    write_json(summary_json_path, payload, indent=2)
 
     return ThresholdArtifacts(
         sweep_csv_path=sweep_csv_path,

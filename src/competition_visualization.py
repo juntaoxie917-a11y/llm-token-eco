@@ -11,14 +11,7 @@ from typing import Optional, Sequence, Tuple
 
 import matplotlib.pyplot as plt
 import pandas as pd
-
-
-def _save_figure(fig: plt.Figure, outpath_base: Path, *, save_png: bool = True, dpi: int = 300) -> None:
-    outpath_base.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(outpath_base.with_suffix(".pdf"), bbox_inches="tight")
-    fig.savefig(outpath_base.with_suffix(".svg"), bbox_inches="tight")
-    if save_png:
-        fig.savefig(outpath_base.with_suffix(".png"), dpi=dpi, bbox_inches="tight")
+from .io_utils import save_figure_bundle
 
 
 def load_competition_results_csv(csv_path: str | Path) -> pd.DataFrame:
@@ -63,7 +56,7 @@ def plot_competition_d_star_vs_p(*, df: pd.DataFrame, outdir: Path, stem: str = 
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
 
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -89,7 +82,7 @@ def plot_competition_teacher_profit_vs_p(
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
 
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -117,7 +110,7 @@ def plot_competition_student_profit_vs_p(
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
 
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -138,7 +131,7 @@ def plot_competition_downstream_prices_vs_p(
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
 
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -161,7 +154,7 @@ def plot_competition_downstream_shares_vs_p(
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
 
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -192,7 +185,7 @@ def plot_competition_threshold_strict_vs_market_size(
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
 
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -227,7 +220,7 @@ def plot_competition_threshold_weak_vs_market_size(
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
 
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -253,7 +246,7 @@ def plot_competition_threshold_p_star_vs_market_size(
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
 
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -279,7 +272,7 @@ def plot_competition_threshold_d_star_vs_market_size(
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
 
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -305,7 +298,7 @@ def plot_competition_threshold_teacher_payoff_vs_market_size(
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
 
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -331,7 +324,7 @@ def plot_competition_threshold_student_payoff_vs_market_size(
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
 
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -359,7 +352,7 @@ def plot_competition_threshold_distance_diagnostics_vs_market_size(
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
 
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -385,7 +378,7 @@ def plot_competition_threshold_min_share_vs_market_size(
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
 
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -466,7 +459,7 @@ def plot_competition_sensitivity_p_star_vs_parameter(
     ax.set_ylabel(r"Teacher optimal upstream price $p^*$")
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -487,7 +480,7 @@ def plot_competition_sensitivity_d_star_vs_parameter(
     ax.set_ylabel(r"Student equilibrium token demand $D^*$")
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -508,7 +501,7 @@ def plot_competition_sensitivity_teacher_payoff_vs_parameter(
     ax.set_ylabel("Teacher total payoff at optimum")
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -529,7 +522,7 @@ def plot_competition_sensitivity_student_payoff_vs_parameter(
     ax.set_ylabel("Student total payoff at teacher optimum")
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -555,7 +548,7 @@ def plot_competition_sensitivity_interior_indicator_vs_parameter(
     ax.set_yticks([0, 1])
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -577,7 +570,7 @@ def plot_competition_sensitivity_downstream_prices_vs_parameter(
     ax.set_ylabel("Downstream equilibrium prices")
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -601,7 +594,7 @@ def plot_competition_sensitivity_downstream_shares_vs_parameter(
     ax.set_ylim(-0.02, 1.02)
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend()
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -623,7 +616,7 @@ def plot_competition_teacher_profit_vs_p_multi_u0(
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend(ncols=2, loc="upper left", bbox_to_anchor=(1.02, 1.0), borderaxespad=0.0)
 
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -645,7 +638,7 @@ def plot_competition_student_profit_vs_p_multi_u0(
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend(ncols=2, loc="upper left", bbox_to_anchor=(1.02, 1.0), borderaxespad=0.0)
 
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -667,7 +660,7 @@ def plot_competition_teacher_profit_vs_p_multi_tau(
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend(ncols=2, loc="upper left", bbox_to_anchor=(1.02, 1.0), borderaxespad=0.0)
 
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -689,7 +682,7 @@ def plot_competition_student_profit_vs_p_multi_tau(
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend(ncols=2, loc="upper left", bbox_to_anchor=(1.02, 1.0), borderaxespad=0.0)
 
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -711,7 +704,7 @@ def plot_competition_teacher_profit_vs_p_multi_market_size(
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend(ncols=2, loc="upper left", bbox_to_anchor=(1.02, 1.0), borderaxespad=0.0)
 
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
 
 
@@ -733,5 +726,5 @@ def plot_competition_student_profit_vs_p_multi_market_size(
     ax.grid(True, which="both", linestyle="--", linewidth=0.5, alpha=0.4)
     ax.legend(ncols=2, loc="upper left", bbox_to_anchor=(1.02, 1.0), borderaxespad=0.0)
 
-    _save_figure(fig, outdir / stem)
+    save_figure_bundle(fig, outdir / stem)
     plt.close(fig)
