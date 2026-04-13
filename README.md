@@ -46,6 +46,80 @@ Reference docs:
 - `docs/baseline_reconstruction.md`
 - `docs/competition_ai_briefing.md`
 
+## Environment Setup
+
+Python and dependency baseline:
+
+- Python `3.10` (recommended)
+- OS: macOS/Windows/Linux
+
+Choose **one** environment path below.
+
+### Option A: Conda (recommended)
+
+```bash
+conda env create -f environment.yml
+conda activate llm-econ
+```
+
+If the environment already exists:
+
+```bash
+conda env update -f environment.yml --prune
+conda activate llm-econ
+```
+
+### Option B: venv + pip
+
+macOS/Linux:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Windows PowerShell:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+Reproducibility note:
+
+- Default seed is configured as `experiment.seed: 42` in `config/base.yaml`.
+- `soft.yaml` and `competition.yaml` inherit from `base.yaml` via `run.base_config` unless overridden.
+
+## Reproduce From Scratch (Recommended Sequence)
+
+From repository root, run in this order:
+
+```bash
+python -m experiments.exp_01_hard_outside
+python -m experiments.exp_02_soft_outside
+python -m experiments.exp_07_competition_stage5_pipeline
+python -m experiments.exp_08_competition_market_threshold
+python -m experiments.exp_09_competition_u0_sensitivity
+python -m experiments.exp_10_competition_tau_sensitivity
+python -m experiments.exp_11_competition_stage9_regression_safeguards
+python -m experiments.exp_12_competition_unconstrained_like_stability
+python -m experiments.exp_13_competition_unconstrained_like_plots
+```
+
+Optional: clean old artifacts first to avoid confusing old/new outputs.
+
+```bash
+rm -rf results/tables/* results/figures/* results/logs/*
+```
+
+Windows PowerShell equivalent:
+
+```powershell
+Remove-Item results/tables/*,results/figures/*,results/logs/* -Recurse -Force -ErrorAction SilentlyContinue
+```
+
 ## How To Run
 
 Recommended (cross-platform, works the same on macOS and Windows):
@@ -167,6 +241,16 @@ For Stage 9 safeguards (`exp_11`), key files include:
 - `results/tables/competition_threshold_stage9_smoke_summary.json`
 - `results/tables/competition_threshold_stage9_smoke_refinement_history.csv`
 - `results/logs/exp_11_competition_stage9_regression_run_log.json`
+
+## Reproduction Checklist
+
+Use this checklist to confirm the run is complete and reproducible:
+
+- Baseline artifacts: `results/tables/baseline_demand_curve.csv`, `results/tables/baseline_optimum.json`
+- Competition Stage 5 artifacts: `results/tables/competition_stage5_grid_results.csv`, `results/tables/competition_stage5_optimum.json`
+- Threshold artifacts: `results/tables/competition_threshold_sweep_results.csv`, `results/tables/competition_threshold_summary.json`
+- Sensitivity artifacts: `results/tables/u0_sensitivity/u0_sensitivity_results.csv`, `results/tables/tau_sensitivity/tau_sensitivity_results.csv`
+- Regression safeguard report: `results/tables/competition_stage9_regression_report.json` and `all_passed == true`
 
 ## Sensitivity Notes
 
