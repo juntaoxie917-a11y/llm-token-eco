@@ -40,6 +40,8 @@ conda env update -f environment.yml --prune
 conda activate llm-econ
 ```
 
+For strict reproducibility from the lock file: `conda env create -f environment.lock.yml`.
+
 ### venv + pip
 
 ```bash
