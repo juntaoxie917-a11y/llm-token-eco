@@ -90,15 +90,31 @@ def run_soft_curve_table(
 
 def y_label(metric: str) -> str:
     labels = {
-        "pi_student_soft": "Student total payoff",
-        "pi_teacher_soft": "Teacher total payoff",
-        "D_soft": "Soft demand",
-        "s_enter": "Entry probability",
-        "D_star": "Conditional demand D*",
-        "pi_student_star": "Conditional student payoff",
-        "L_student": "Student loss",
+        "pi_student_soft": r"Student total payoff $\Pi_S^{\mathrm{soft}}(p)$",
+        "pi_teacher_soft": r"Teacher total payoff $\Pi_T^{\mathrm{soft}}(p)$",
+        "D_soft": r"Soft demand $D^{\mathrm{eff}}(p)$",
+        "s_enter": r"Entry probability $s(p)$",
+        "D_star": r"Conditional demand $D^*(p)$",
+        "pi_student_star": r"Conditional student payoff $\Pi_S^*(p)$",
+        "L_student": r"Student loss $L_S(p)$",
     }
     return labels[metric]
+
+
+def pretty_param_label(var: str, value: float) -> str:
+    if var == "alpha":
+        return rf"$\alpha={value:.4g}$"
+    if var == "beta":
+        return rf"$\beta={value:.4g}$"
+    if var == "gamma":
+        return rf"$\gamma={value:.4g}$"
+    if var == "tau":
+        return rf"$\tau={value:.4g}$"
+    if var == "c_T":
+        return rf"$c_T={value:.4g}$"
+    if var == "k":
+        return rf"$k={value:.4g}$"
+    return f"{var}={value:.4g}"
 
 
 def draw_metric_family(
@@ -113,10 +129,7 @@ def draw_metric_family(
     vals = sorted(df["value"].dropna().unique().tolist())
     for v in vals:
         sub = df[df["value"] == v].sort_values("p")
-        if var == "tau":
-            label = rf"$\tau={v:.1f}$"
-        else:
-            label = f"{var}={v:.4g}"
+        label = pretty_param_label(var, float(v))
 
         ax.plot(
             sub["p"].to_numpy(dtype=float),
