@@ -42,7 +42,6 @@ Run from repository root in the following order:
 ```bash
 python -m experiments.exp_10_baseline_base_hard
 python -m experiments.exp_11_baseline_base_soft
-python -m experiments.exp_20_baseline_sensitivity_core
 python -m experiments.exp_21_baseline_sensitivity_soft_figures
 python -m experiments.exp_30_competition_base_pipeline
 python -m experiments.exp_45_competition_sensitivity_threshold
@@ -62,10 +61,9 @@ python -m experiments.exp_10_baseline_base_hard
 python -m experiments.exp_11_baseline_base_soft
 ```
 
-### Sensitivity core + soft figures
+### Baseline sensitivity figures
 
 ```bash
-python -m experiments.exp_20_baseline_sensitivity_core
 python -m experiments.exp_21_baseline_sensitivity_soft_figures
 ```
 
@@ -109,7 +107,7 @@ Standard figure directory layout:
 
 - `results/figures/baseline/base/`
 - `results/figures/baseline/sensitivity/`
-- `results/figures/baseline/sensitivity/soft_families/`
+- `results/figures/baseline/sensitivity/<param>/`
 - `results/figures/competition/base/`
 - `results/figures/competition/sensitivity/threshold/`
 - `results/figures/competition/sensitivity/u0/`

@@ -150,7 +150,7 @@ def main() -> None:
     cfg["grids"]["p_points"] = int(max(120, args.p_points))
 
     out_tables = root / "results" / "tables"
-    out_fig_dir = root / "results" / "figures" / "baseline" / "sensitivity" / "soft_families"
+    out_fig_dir = root / "results" / "figures" / "baseline" / "sensitivity"
     out_tables.mkdir(parents=True, exist_ok=True)
     out_fig_dir.mkdir(parents=True, exist_ok=True)
 
@@ -175,7 +175,7 @@ def main() -> None:
         frames.append(df)
 
         for m in metrics:
-            base = out_fig_dir / f"soft_sens_{p}_{m}"
+            base = out_fig_dir / p / f"soft_sens_{p}_{m}"
             draw_metric_family(df=df, var=p, metric=m, out_base=base)
             figure_paths.extend([str(base.with_suffix(".pdf")), str(base.with_suffix(".png")), str(base.with_suffix(".svg"))])
 
@@ -187,6 +187,7 @@ def main() -> None:
         "mode": "soft_only",
         "params": params,
         "metrics": metrics,
+        "figure_layout": "results/figures/baseline/sensitivity/<param>/soft_sens_<param>_<metric>.<ext>",
         "curve_count_per_param": int(args.curve_levels),
         "p_points": int(cfg["grids"]["p_points"]),
         "rows": int(len(full)),

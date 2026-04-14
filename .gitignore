@@ -6,7 +6,7 @@ __pycache__/
 results/figures/
 results/logs/
 results/tables/
-tmp/*
+
 !.gitkeep
 
 .venv/
