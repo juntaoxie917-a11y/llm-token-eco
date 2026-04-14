@@ -230,3 +230,12 @@ At minimum, confirm these files exist and are non-empty:
 6. `results/tables/competition_stage9_regression_report.json`
 
 For safeguard completion, `all_passed` in `competition_stage9_regression_report.json` should be `true`.
+
+## 8. License
+
+This repository uses a split-license setup:
+
+1. Code is licensed under the Apache License 2.0. See `LICENSE`.
+2. Documentation and narrative materials are licensed under CC BY 4.0. See `LICENSE-docs`.
+
+If a file or subdirectory declares a different license, that file-level declaration takes precedence.
