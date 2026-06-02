@@ -276,7 +276,7 @@ def plot_soft_teacher_profit(*, cfg: Dict[str, Any], df: "pd.DataFrame", outdir:
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
-    ax.plot(p, piT, label=r"Teacher payoff $\Pi_T^{eff}(p)$")
+    ax.plot(p, piT, label=r"Teacher payoff $\Pi_T^{exp}}(p)$")
     ax.set_xlabel(r"Token price $p$")
     ax.set_ylabel(r"Teacher payoff")
 
