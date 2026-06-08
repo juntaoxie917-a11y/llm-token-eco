@@ -128,12 +128,12 @@ def _label_from_flags(
     downstream_solver_ok: bool,
 ) -> str:
     if not (success and teacher_solver_ok and student_solver_ok and downstream_solver_ok):
-        return "unresolved"
+        return "Unresolved"
     if interior_equilibrium:
-        return "interior"
+        return "Interior"
     if teacher_price_at_upper_boundary:
-        return "non_interior_bound_limited"
-    return "non_interior_pmax_insensitive"
+        return "Boundary in other variables"
+    return "Boundary at $p_{\\text{max}}$"
 
 
 def main() -> None:
@@ -404,9 +404,9 @@ def main() -> None:
         label_set = set(labels)
         last_label = labels[-1]
         is_unresolved = bool(
-            ("unresolved" in label_set)
-            or (last_label == "non_interior_bound_limited")
-            or (len(label_set) >= 2 and "interior" in label_set and "non_interior_pmax_insensitive" in label_set)
+            ("Unresolved" in label_set)
+            or (last_label == "Boundary in other variables")
+            or (len(label_set) >= 2 and "Interior" in label_set and "Boundary at $p_{\\text{max}}$" in label_set)
         )
         if is_unresolved:
             unresolved_rows.append(

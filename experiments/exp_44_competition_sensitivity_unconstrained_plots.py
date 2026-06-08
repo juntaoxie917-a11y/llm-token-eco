@@ -23,10 +23,10 @@ def _save_figure(fig: plt.Figure, outpath_base: Path, *, save_png: bool = True, 
 
 def _label_to_code(label: str) -> int:
     mapping = {
-        "interior": 0,
-        "non_interior_bound_limited": 1,
-        "non_interior_pmax_insensitive": 2,
-        "unresolved": 3,
+        "Interior": 0,
+        "Boundary in other variables": 1,
+        "Boundary at $p_{\\text{max}}$": 2,
+        "Unresolved": 3,
     }
     return int(mapping.get(str(label), 3))
 
@@ -74,10 +74,10 @@ def _plot_label_heatmap(*, panel: pd.DataFrame, parameter: str, outdir: Path) ->
 
     cbar = fig.colorbar(im, ax=ax, ticks=[0, 1, 2, 3])
     cbar.ax.set_yticklabels([
-        "interior",
-        "non_interior_bound_limited",
-        "non_interior_pmax_insensitive",
-        "unresolved",
+        "Interior",
+        "Boundary in other variables",
+        "Boundary at $p_{\\text{max}}$",
+        "Unresolved",
     ])
 
     stem = {
